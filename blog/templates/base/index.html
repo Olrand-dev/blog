@@ -206,7 +206,22 @@ const EntriesList = new Vue({
     data() {
         return {
 
+            entriesList: [],
         }
+    },
+
+    created() {
+        $.ajax({
+            url: '/get-entries-list',
+            type: 'GET',
+            dataType: 'json',
+            data: {},
+            success: function(response) { console.log(response);
+                
+                this.entriesList = response.data;
+
+            }.bind(this)
+        });
     },
 
     methods: {

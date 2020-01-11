@@ -30,6 +30,6 @@ class ApiResponse():
             'data': self.data,
         }
 
-    def get_data(self):
+    def get_resp_data(self):
 
         return self.make_resp()
