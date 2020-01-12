@@ -15,6 +15,7 @@ class Author(models.Model):
 
 class Category(models.Model):
     name = models.CharField('category name', max_length=100)
+    alias = models.CharField('alias', max_length=100, null=True)
     desc = models.TextField('description', blank=True)
 
     class Meta:
@@ -26,6 +27,7 @@ class Category(models.Model):
 
 class Tag(models.Model):
     name = models.CharField('tag name', max_length=50)
+    alias = models.CharField('alias', max_length=100, null=True)
 
     def __str__(self):
         return f'{self.name}'

@@ -7,6 +7,29 @@ def index(request):
     return render(request, 'base/index.html')
 
 
+def show_entry_page(request):
+    pass
+
+
+def show_cat_list(request):
+    pass
+
+
+def show_tag_list(request):
+    pass
+
+
+def show_year_archive(request):
+    pass
+
+
+def show_month_archive(request):
+    pass
+
+
+
+
+
 def get_user_data(request):
     user = request.user
     profile_data = None
@@ -49,6 +72,11 @@ def get_entries_list(request):
         entry_data['category'] = entry.category.name
         entry_data['pub_date'] = entry.pub_date.strftime("%b %d, %Y")
         entry_data['author'] = f'{author.user.first_name} {author.user.last_name}'
+        entry_data['excerpt'] = entry_data['text'][:150]
+        entry_data['image_thumb_link'] = entry.image_thumb.url
+        entry_data['entry_page_link'] = f"articles/{entry_data['entry_type']}/{entry_data['id']}/"
+        entry_data['cat_list_link'] = f"category/{entry.category.alias}/"
+        entry_data['month_archive_link'] = f"archive/{entry.pub_date.year}/{entry.pub_date.month}/"
 
     resp.data = entries_data
     return JsonResponse(resp.get_resp_data())

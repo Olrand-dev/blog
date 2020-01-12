@@ -12,168 +12,101 @@
 
             <div class="grid-sizer"></div>
 
-            <article class="masonry__brick entry format-standard animate-this">
-                    
-                <div class="entry__thumb">
-                    <a href="single-standard.html" class="entry__thumb-link">
-                        <img src="{% static 'base/img/thumbs/masonry/woodcraft-600.jpg' %}" 
-                                srcset="{% static 'base/img/thumbs/masonry/woodcraft-600.jpg' %} 1x, {% static 'base/img/thumbs/masonry/woodcraft-1200.jpg' %} 2x" alt="">
-                    </a>
-                </div>
+            <div v-for="entry in entriesList" :key="entry.id" class="entry-block">
 
-                <div class="entry__text">
-                    <div class="entry__header">
+                <article v-if="entry.entry_type === 'standard'" class="masonry__brick entry format-standard animate-this">
 
-                        <h2 class="entry__title"><a href="single-standard.html">Just a Standard Format Post.</a></h2>
-                        <div class="entry__meta">
-                            <span class="entry__meta-cat">
-                                <a href="category.html">Design</a> 
-                                <a href="category.html">Photography</a>
-                            </span>
-                            <span class="entry__meta-date">
-                                <a href="single-standard.html">Apr 29, 2019</a>
-                            </span>
+                    <div class="entry__thumb">
+                        <a :href="entry.entry_page_link" class="entry__thumb-link">
+                            <img :src="entry.image_thumb_link" alt="article_thumb">
+                        </a>
+                    </div>
+
+                    <div class="entry__text">
+                        <div class="entry__header">
+
+                            <h2 class="entry__title">
+                                <a :href="entry.entry_page_link">[[entry.header]]</a>
+                            </h2>
+
+                            <div class="entry__meta">
+                                <span class="entry__meta-cat">
+                                    <a :href="entry.cat_list_link">[[entry.category]]</a>
+                                </span>
+                                <span class="entry__meta-date">
+                                    <a :href="entry.month_archive_link">[[entry.pub_date]]</a>
+                                </span>
+                            </div>
+                            
                         </div>
+                        <div class="entry__excerpt">
+                            <p>[[entry.excerpt]]</p>
+                        </div>
+                    </div>
+
+                </article>
+
+                <!-- <article v-if="entry.entry_type === 'video'" class="masonry__brick entry format-video animate-this">
                         
+                    <div class="entry__thumb video-image">
+                        <a href="https://player.vimeo.com/video/117310401?color=339989&title=0&byline=0&portrait=0" data-lity class="entry__thumb-link">
+                            <img src="{% static 'base/img/thumbs/masonry/cookies-600.jpg' %}" 
+                                srcset="{% static 'base/img/thumbs/masonry/cookies-600.jpg' %} 1x, {% static 'base/img/thumbs/masonry/cookies-1200.jpg' %} 2x" alt="">
+                        </a>
                     </div>
-                    <div class="entry__excerpt">
-                        <p>
-                        Lorem ipsum Sed eiusmod esse aliqua sed incididunt aliqua incididunt mollit id et sit proident dolor nulla sed commodo est ad minim elit reprehenderit nisi officia aute incididunt velit sint in aliqua...
-                        </p>
-                    </div>
-                </div>
 
-            </article>
-
-            <article class="masonry__brick entry format-quote animate-this">
-                    
-                <div class="entry__thumb">
-                    <blockquote>
-                        <p>Good design is making something intelligible and memorable. Great design is making something memorable and meaningful.</p>
-
-                        <cite>Dieter Rams</cite>
-                    </blockquote>
-                </div>   
-
-            </article>
-
-            <article class="masonry__brick entry format-audio animate-this">
-
-                <div class="entry__thumb">
-                    <a href="single-audio.html" class="entry__thumb-link">
-                        <img src="{% static 'base/img/thumbs/masonry/guitarist-600.jpg' %}" 
-                            srcset="{% static 'base/img/thumbs/masonry/guitarist-600.jpg' %} 1x, {% static 'base/img/thumbs/masonry/guitarist-1200.jpg' %} 2x" alt="">
-                    </a>
-                </div>
-
-                <div class="entry__text">
-                    <div class="entry__header">
-                        <h2 class="entry__title"><a href="single-audio.html">What Your Music Preference Says About You and Your Personality.</a></h2>
-                        <div class="entry__meta">
-                            <span class="entry__meta-cat">
-                                <a href="category.html">Lifestyle</a>
-                            </span>
-                            <span class="entry__meta-date">
-                                <a href="single-standard.html">Apr 24, 2019</a>
-                            </span>
+                    <div class="entry__text">
+                        <div class="entry__header">
+                            <h2 class="entry__title"><a href="single-video.html">No Sugar Oatmeal Cookies.</a></h2>
+                            <div class="entry__meta">
+                                <span class="entry__meta-cat">
+                                    <a href="category.html">Lifestyle</a>
+                                    <a href="category.html">Health</a>
+                                </span>
+                                <span class="entry__meta-date">
+                                    <a href="single-standard.html">Apr 24, 2019</a>
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="entry__excerpt">
-                        <p>
+                        <div class="entry__excerpt">
+                            <p>
                             Lorem ipsum Sed eiusmod esse aliqua sed incididunt aliqua incididunt mollit id et sit proident dolor nulla sed commodo est ad minim elit reprehenderit nisi officia aute incididunt velit sint in aliqua...
-                        </p>
+                            </p>
+                        </div>
                     </div>
-                </div>
 
-            </article>
+                </article>
 
-            <article class="masonry__brick entry format-video animate-this">
+                <article v-if="entry.entry_type === 'quote'" class="masonry__brick entry format-quote animate-this">
+                        
+                    <div class="entry__thumb">
+                        <blockquote>
+                            <p>Good design is making something intelligible and memorable. Great design is making something memorable and meaningful.</p>
+
+                            <cite>Dieter Rams</cite>
+                        </blockquote>
+                    </div>   
+
+                </article>
+
+                <article v-if="entry.entry_type === 'link'" class="masonry__brick entry format-link animate-this">
                     
-                <div class="entry__thumb video-image">
-                    <a href="https://player.vimeo.com/video/117310401?color=339989&title=0&byline=0&portrait=0" data-lity class="entry__thumb-link">
-                        <img src="{% static 'base/img/thumbs/masonry/cookies-600.jpg' %}" 
-                            srcset="{% static 'base/img/thumbs/masonry/cookies-600.jpg' %} 1x, {% static 'base/img/thumbs/masonry/cookies-1200.jpg' %} 2x" alt="">
-                    </a>
-                </div>
-
-                <div class="entry__text">
-                    <div class="entry__header">
-                        <h2 class="entry__title"><a href="single-video.html">No Sugar Oatmeal Cookies.</a></h2>
-                        <div class="entry__meta">
-                            <span class="entry__meta-cat">
-                                <a href="category.html">Lifestyle</a>
-                                <a href="category.html">Health</a>
-                            </span>
-                            <span class="entry__meta-date">
-                                <a href="single-standard.html">Apr 24, 2019</a>
-                            </span>
+                    <div class="entry__thumb">
+                        <div class="link-wrap">
+                            <h2>Powerful web & Wordpress hosting. Guaranteed. Starting at $2.59/mo!</h2>
+                            <cite>
+                                <a target="_blank" href="https://www.dreamhost.com/r.cgi?287326">https://www.dreamhost.com</a>
+                            </cite>
                         </div>
                     </div>
-                    <div class="entry__excerpt">
-                        <p>
-                        Lorem ipsum Sed eiusmod esse aliqua sed incididunt aliqua incididunt mollit id et sit proident dolor nulla sed commodo est ad minim elit reprehenderit nisi officia aute incididunt velit sint in aliqua...
-                        </p>
-                    </div>
-                </div>
-
-            </article>
-
-            <article class="masonry__brick entry format-link animate-this">
-                
-                <div class="entry__thumb">
-                    <div class="link-wrap">
-                        <h2>Powerful web & Wordpress hosting. Guaranteed. Starting at $2.59/mo!</h2>
-                        <cite>
-                            <a target="_blank" href="https://www.dreamhost.com/r.cgi?287326">https://www.dreamhost.com</a>
-                        </cite>
-                    </div>
-                </div>
-                
-            </article>
-
-            <article class="masonry__brick entry format-gallery animate-this">
                     
-                <div class="entry__thumb slider">
-                    <div class="slider__slides">
-                        <div class="slider__slide">
-                            <img src="{% static 'base/img/thumbs/masonry/gallery/slide-1-600.jpg' %}" 
-                                srcset="{% static 'base/img/thumbs/masonry/gallery/slide-1-600.jpg' %} 1x, {% static 'base/img/thumbs/masonry/gallery/slide-1-1200.jpg' %} 2x" alt=""> 
-                        </div>
-                        <div class="slider__slide">
-                            <img src="{% static 'base/img/thumbs/masonry/gallery/slide-2-600.jpg' %}" 
-                                srcset="{% static 'base/img/thumbs/masonry/gallery/slide-2-600.jpg' %} 1x, {% static 'base/img/thumbs/masonry/gallery/slide-2-1200.jpg' %} 2x" alt=""> 
-                        </div>
-                        <div class="slider__slide">
-                            <img src="{% static 'base/img/thumbs/masonry/gallery/slide-3-600.jpg' %}" 
-                                srcset="{% static 'base/img/thumbs/masonry/gallery/slide-3-600.jpg' %} 1x, {% static 'base/img/thumbs/masonry/gallery/slide-3-1200.jpg' %} 2x" alt="">  
-                        </div>
-                    </div>
-                </div>
+                </article> -->
+                
+            </div>
 
-                <div class="entry__text">
-                    <div class="entry__header">
-                        <h2 class="entry__title"><a href="single-gallery.html">The Best Tropical Leaves base/img.</a></h2>
-                        <div class="entry__meta">
-                            <span class="entry__meta-cat">
-                                <a href="category.html">Vacation</a>
-                            </span>
-                            <span class="entry__meta-date">
-                                <a href="single-standard.html">Apr 23, 2019</a>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="entry__excerpt">
-                        <p>
-                            Lorem ipsum Sed eiusmod esse aliqua sed incididunt aliqua incididunt mollit id et sit proident dolor nulla sed commodo est ad minim elit reprehenderit nisi officia aute incididunt velit sint in aliqua...
-                        </p>
-                    </div>
-                </div>
+        </div>
 
-            </article>
-
-        </div> <!-- end masonry -->
-
-    </div> <!-- end masonry-wrap -->
+    </div>
 
     <div class="row">
         <div class="column large-full">
@@ -210,7 +143,7 @@ const EntriesList = new Vue({
         }
     },
 
-    created() {
+    beforeCreate() {
         $.ajax({
             url: '/get-entries-list',
             type: 'GET',
