@@ -1,0 +1,135 @@
+<div id="entries-list" class="content-wrap">
+    <div class="masonry-wrap">
+
+        <div class="masonry">
+
+            <div class="grid-sizer"></div>
+
+            {% for entry in page_obj %}
+            <div class="entry-block">
+
+                <article class="masonry__brick entry format-standard animate-this">
+
+                    <div class="entry__thumb {% if entry.entry_type == 'video' %}video-image{% endif %}">
+                        <a href="
+                            {% if entry.entry_type == 'standard' %}
+                                {{entry.entry_page_link}}
+                            {% elif entry.entry_type == 'video'%}
+                                {{entry.video_url}}
+                            {% endif %}
+                        " {% if entry.entry_type == 'video' %}data-lity{% endif %} class="entry__thumb-link">
+                            <img src="{{entry.image_thumb_link}}" alt="article_thumb">
+                        </a>
+                    </div>
+
+                    <div class="entry__text">
+                        <div class="entry__header">
+
+                            <h2 class="entry__title">
+                                <a href="{{entry.entry_page_link}}">{{entry.header}}</a>
+                            </h2>
+
+                            <div class="entry__meta">
+                                <span class="entry__meta-cat">
+                                    <a href="{{entry.cat_list_link}}">{{entry.category_name}}</a>
+                                </span>
+                                <span class="entry__meta-date">
+                                    <a href="{{entry.month_archive_link}}">{{entry.pub_date_formated}}</a>
+                                </span>
+                            </div>
+                            
+                        </div>
+                        <div class="entry__excerpt">
+                            <p>{{entry.excerpt}}</p>
+                        </div>
+                    </div>
+
+                </article>
+
+                <!-- <article v-if="entry.entry_type === 'quote'" class="masonry__brick entry format-quote animate-this">
+                        
+                    <div class="entry__thumb">
+                        <blockquote>
+                            <p>Good design is making something intelligible and memorable. Great design is making something memorable and meaningful.</p>
+
+                            <cite>Dieter Rams</cite>
+                        </blockquote>
+                    </div>   
+
+                </article>
+
+                <article v-if="entry.entry_type === 'link'" class="masonry__brick entry format-link animate-this">
+                    
+                    <div class="entry__thumb">
+                        <div class="link-wrap">
+                            <h2>Powerful web & Wordpress hosting. Guaranteed. Starting at $2.59/mo!</h2>
+                            <cite>
+                                <a target="_blank" href="https://www.dreamhost.com/r.cgi?287326">https://www.dreamhost.com</a>
+                            </cite>
+                        </div>
+                    </div>
+                    
+                </article> -->
+                
+            </div>
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+    <div class="row pagination">
+        <div class="column large-full">
+            <nav class="pgn">
+                <ul>
+                    {% if page_obj.has_previous %}
+                        <li>
+                            <a class="pgn__prev" href="?page={{ page_obj.previous_page_number }}">Prev</a>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li><span class="pgn__num current">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li><a class="pgn__num" href="?page={{ num }}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+            
+                    {% if page_obj.has_next %}
+                        <li>
+                            <a class="pgn__next" href="?page={{ page_obj.next_page_number }}">Next</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+    const EntriesList = new Vue({
+    
+        el: '#entries-list',
+    
+        delimiters: ['[[', ']]'],
+    
+        data() {
+            return {
+    
+            }
+        },
+    
+        methods: {
+    
+            smartTrim(string, maxLength) {
+                let trimmedString = string.substr(0, maxLength);
+                return trimmedString.substr(0, Math.min(trimmedString.length, trimmedString.lastIndexOf(" ")));
+            }
+        },
+    
+    });
+    
+</script>
