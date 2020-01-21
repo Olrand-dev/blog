@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
 
 
 class Author(models.Model):
@@ -8,6 +7,7 @@ class Author(models.Model):
     country = models.CharField('country', max_length=50, blank=True)
     state = models.CharField('state', max_length=150, blank=True)
     city = models.CharField('city', max_length=50, blank=True)
+    avatar = models.ImageField('avatar', upload_to='users/avatars/', blank=True)
 
     def __str__(self):
         return f'{self.user.first_name} {self.user.last_name}'
@@ -97,7 +97,9 @@ class Comment(models.Model):
         'self',
         on_delete=models.CASCADE,
         related_name="replies",
-        related_query_name="reply"
+        related_query_name="reply",
+        null=True,
+        blank=True
     )
     pub_date = models.DateTimeField('publication date', auto_now_add=True)
     text = models.TextField('text')

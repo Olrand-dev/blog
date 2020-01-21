@@ -102,6 +102,11 @@ function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
 }
 
+function smartTrim(string, maxLength) {
+    let trimmedString = string.substr(0, maxLength);
+    return trimmedString.substr(0, Math.min(trimmedString.length, trimmedString.lastIndexOf(" ")));
+}
+
 
 Vue.use(VueToast);
 

@@ -1,4 +1,4 @@
-<div id="entries-list" class="content-wrap">
+<div id="entries-list" class="s-content">
     <div class="masonry-wrap">
 
         <div class="masonry">
@@ -13,12 +13,12 @@
                     <div class="entry__thumb {% if entry.entry_type == 'video' %}video-image{% endif %}">
                         <a href="
                             {% if entry.entry_type == 'standard' %}
-                                {{entry.entry_page_link}}
+                                {% url 'base:entry-page' entry.entry_type entry.id %}
                             {% elif entry.entry_type == 'video'%}
-                                {{entry.video_url}}
+                                {{ entry.video_url }}
                             {% endif %}
                         " {% if entry.entry_type == 'video' %}data-lity{% endif %} class="entry__thumb-link">
-                            <img src="{{entry.image_thumb_link}}" alt="article_thumb">
+                            <img src="{{ entry.image_thumb.url }}" alt="article_thumb">
                         </a>
                     </div>
 
@@ -26,21 +26,25 @@
                         <div class="entry__header">
 
                             <h2 class="entry__title">
-                                <a href="{{entry.entry_page_link}}">{{entry.header}}</a>
+                                <a href="{% url 'base:entry-page' entry.entry_type entry.id %}">{{ entry.header }}</a>
                             </h2>
 
                             <div class="entry__meta">
                                 <span class="entry__meta-cat">
-                                    <a href="{{entry.cat_list_link}}">{{entry.category_name}}</a>
+                                    <a href="{% url 'base:cat-list' entry.category_alias %}">
+                                        {{ entry.category_name }}
+                                    </a>
                                 </span>
                                 <span class="entry__meta-date">
-                                    <a href="{{entry.month_archive_link}}">{{entry.pub_date_formated}}</a>
+                                    <a href="{% url 'base:month-archive' entry.pub_date.year entry.pub_date.month %}">
+                                        {{ entry.pub_date|date:'M j, Y' }}
+                                    </a>
                                 </span>
                             </div>
                             
                         </div>
                         <div class="entry__excerpt">
-                            <p>{{entry.excerpt}}</p>
+                            <p>{{ entry.excerpt }}</p>
                         </div>
                     </div>
 
@@ -123,11 +127,7 @@
         },
     
         methods: {
-    
-            smartTrim(string, maxLength) {
-                let trimmedString = string.substr(0, maxLength);
-                return trimmedString.substr(0, Math.min(trimmedString.length, trimmedString.lastIndexOf(" ")));
-            }
+            
         },
     
     });
