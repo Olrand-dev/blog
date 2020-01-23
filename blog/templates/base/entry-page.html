@@ -178,7 +178,8 @@
                     <h3 v-if="mode === 'reply'" class="h2">Add Reply <span>Your email address will not be published</span></h3>
 
                     <p v-if="mode === 'reply'" class="reply-details">
-                        Response to comment by [[ replyTargetAuthor ]] ([[ replyTargetPubDate ]])
+                        Response to comment by <b>[[ replyTargetAuthor ]]</b> (<span class="muted">[[ replyTargetPubDate ]]</span>)
+                        <a href="" @click.prevent="cancelReply">cancel</a>
                     </p>
     
                     <form name="contactForm" id="contactForm" method="post" action="" autocomplete="off">
@@ -188,16 +189,33 @@
                             <input type="hidden" name="entry-id" value="{{ entry.id }}">
     
                             <div class="form-field">
-                                <input v-model="formData.name" class="full-width" placeholder="Your Name" type="text">
+                                <input v-model="formData.name" class="full-width" :class="{ 'error': errors.name }" placeholder="Your Name" type="text">
                             </div>
     
                             <div class="form-field">
-                                <input v-model="formData.email" class="full-width" placeholder="Your Email" type="text">
+                                <input v-model="formData.email" class="full-width" :class="{ 'error': errors.email }" placeholder="Your Email" type="text">
                             </div>
     
                             <div class="message form-field">
-                                <textarea v-model="formData.message" class="full-width" placeholder="Your Message"></textarea>
+                                <textarea v-model="formData.message" class="full-width" :class="{ 'error': errors.message }" placeholder="Your Message"></textarea>
                             </div>
+
+                            <transition name="fade">
+                                <div v-if="commentSendResult === 'success'" class="alert-box alert-box--success">
+                                    <p>Your comment successfully sended.</p>
+                                </div>
+                                <div v-if="commentSendResult === 'error'" class="alert-box alert-box--error">
+                                    <p>Comment sending error.</p>
+                                </div>
+                                <div v-if="commentValidateResult === 'error'" class="alert-box alert-box--error">
+                                    <p>Form validation errors:</p>
+                                    <ul>
+                                        <li v-for="errorMsg in errorMessages">
+                                            [[ errorMsg ]]
+                                        </li>
+                                    </ul>
+                                </div>
+                            </transition>
     
                             <input @click.prevent="send" class="btn btn--primary btn-wide btn--large full-width" value="Add Comment" type="submit">
     
@@ -213,7 +231,7 @@
 
 </div>
 
-<script> successToast('Your comment was added.');
+<script>
 
     const initFormData = {
         name: '',
@@ -231,8 +249,11 @@
             return {
 
                 mode: 'comment',
+                commentSendResult: '',
+                commentValidateResult: '',
                 formData: clone(initFormData),
 
+                replyTargetId: 0,
                 replyTargetAuthor: '',
                 replyTargetPubDate: '',
 
@@ -263,6 +284,8 @@
                     email: false,
                     message: false,
                 },
+
+                errorMessages: [],
             }
         },
 
@@ -272,9 +295,16 @@
 
             reply(commentId) {
 
+                this.replyTargetId = commentId;
                 this.replyTargetAuthor = $('#comment-'+commentId+' .comment__author').text();
                 this.replyTargetPubDate = $('#comment-'+commentId+' .comment__time').text();
                 this.mode = 'reply';
+            },
+
+            cancelReply() {
+
+                this.replyTargetId = 0;
+                this.mode = 'comment';
             },
             
             send() {
@@ -287,13 +317,35 @@
                     data: {
                         form_data: JSON.stringify(this.formData),
                         entry_id: $('input[name="entry-id"]').val(),
+                        reply: (this.mode === 'reply') ? 1 : 0,
+                        reply_parent_id: this.replyTargetId,
                         csrfmiddlewaretoken: this.csrfToken,
                     },
-                    success: function(response) {
+                    success: function(response) { console.log(response);
 
-                        successToast('Your comment was added.');
-                    }.bind(this)
+                        if (response.status === RESP_STATUS_ERROR) { console.log(123);
+                            this.commentSendError();
+                            return;
+                        }
+
+                        this.commentSendResult = 'success';
+                        setTimeout(() => {
+                            document.location.reload(true);
+                        }, 1500);
+                        
+                    }.bind(this),
+                    error() {
+
+                        this.commentSendError();
+                    }
                 });
+            },
+
+            commentSendError() {
+                this.commentSendResult = 'error';
+                setTimeout(function() {
+                    this.commentSendResult = '';
+                }.bind(this), 3000);
             },
 
             validateForm() {
@@ -302,6 +354,7 @@
                 for (let error in this.errors) {
                     this.errors[error] = false;
                 }
+                this.errorMessages = [];
 
                 for (let field in this.formData) {
 
@@ -324,7 +377,7 @@
 
                         if (error.length > 0) {
                             this.errors[field] = true;
-                            errorToast(error);
+                            this.errorMessages.push(error);
                             valid = false;
                         }  
                     }
@@ -345,14 +398,14 @@
 
                         if (error.length > 0) {
                             this.errors[field] = true;
-                            errorToast(error);
+                            this.errorMessages.push(error);
                             valid = false;
                         }
                     }
 
                     //if field length smaller than min rule length
                     if (valid && rules.min && value.length < rules.min) {
-                        errorToast(
+                        this.errorMessages.push(
                             `Field '${rules.fieldName}' is smaller than min field constraint (${rules.min} symbols).`
                         );
                         this.errors[field] = true;
@@ -361,7 +414,7 @@
 
                     //if field length bigger than max rule length
                     if (valid && rules.max && value.length > rules.max) {
-                        errorToast(
+                        this.errorMessages.push(
                             `Field '${rules.fieldName}' is bigger than max field constraint (${value.length}/${rules.max} symbols).`
                         );
                         this.errors[field] = true;
@@ -369,6 +422,12 @@
                     }
                 }
 
+                if (!valid) {
+                    this.commentValidateResult = 'error';
+                    setTimeout(function() {
+                        this.commentValidateResult = '';
+                    }.bind(this), 6000);
+                }
                 return valid;
             }
         },

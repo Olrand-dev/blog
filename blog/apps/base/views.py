@@ -178,10 +178,11 @@ def get_comment_details(comment):
     return comment
 
 
-def add_comment(request):
+def add_comment(request): #todo -> add form data sanitize
     form_data = json.loads(request.POST['form_data'])
     entry_id = int(request.POST['entry_id'])
     resp = ApiResponse()
+
     entry = Entry.objects.get(pk=entry_id)
 
     comment = Comment(

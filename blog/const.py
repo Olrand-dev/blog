@@ -1,1 +1,6 @@
 PER_PAGE = 2
+
+RESP_STATUS_SUCCESS = 'success'
+RESP_STATUS_ERROR = 'error'
+RESP_STATUS_SERVER_ERROR = 'server_error'
+RESP_ALIAS_REDIRECT = 'redirect'
