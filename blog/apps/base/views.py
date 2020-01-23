@@ -1,10 +1,12 @@
+import json
 from itertools import chain
 from django.core.paginator import Paginator
 from django.shortcuts import render
 from django.http import JsonResponse
 from blog.utils import ApiResponse
 from blog import const
-from .models import Entry, Author, Article, VideoArticle, Category, Tag
+from .models import Entry, Author, Article, VideoArticle, Category, Tag, Comment
+from django.templatetags.static import static
 
 def index(request):
     entries_list = get_entries_list()
@@ -154,8 +156,40 @@ def get_entry_details(base_data, full=False):
 
         entry_data.comments_list = entry.comment_set.all()
         for comment in entry_data.comments_list:
+            comment = get_comment_details(comment)
+
             comment.children = comment.replies.all()
             comment.child_count = comment.children.count()
-            comment.author_name = f'{comment.author.user.first_name} {comment.author.user.last_name}'
+            for c_comment in comment.children:
+                c_comment = get_comment_details(c_comment)
 
     return entry_data
+
+
+def get_comment_details(comment):
+    guest_comment = comment.author is None
+    if guest_comment:
+        comment.author_name = comment.a_name
+        comment.avatar_url = static('base/img/avatars/avatar.png')
+    else:
+        comment.author_name = f'{comment.author.user.first_name} {comment.author.user.last_name}'
+        comment.avatar_url = comment.author.avatar.url
+
+    return comment
+
+
+def add_comment(request):
+    form_data = json.loads(request.POST['form_data'])
+    entry_id = int(request.POST['entry_id'])
+    resp = ApiResponse()
+    entry = Entry.objects.get(pk=entry_id)
+
+    comment = Comment(
+        entry=entry, 
+        text=form_data['message'],
+        a_name=form_data['name'],
+        a_email=form_data['email'],
+    )
+    comment.save()
+
+    return JsonResponse(resp.get_resp_data())

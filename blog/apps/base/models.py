@@ -103,7 +103,15 @@ class Comment(models.Model):
     )
     pub_date = models.DateTimeField('publication date', auto_now_add=True)
     text = models.TextField('text')
-    author = models.ForeignKey(Author, on_delete=models.CASCADE)
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, null=True, blank=True)
+    a_name = models.CharField('author name', max_length=150, blank=True)
+    a_email = models.CharField('author email', max_length=100, blank=True)
 
     def __str__(self):
-        return f'{self.author.user.first_name} {self.author.user.last_name} - {self.pub_date.strftime("%Y-%m-%d %H:%M:%S")}'
+        guest_comment = self.author is None
+        p_date = self.pub_date.strftime("%Y-%m-%d %H:%M:%S")
+
+        if guest_comment:
+            return f'{self.a_name}, {self.a_email} - {p_date}'
+        else:
+            return f'{self.author.user.first_name} {self.author.user.last_name} - {p_date}'

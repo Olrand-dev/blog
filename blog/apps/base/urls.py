@@ -16,4 +16,5 @@ urlpatterns = [
 
     path('get-user-data', views.get_user_data, name='get-user-data'),
     path('get-entries-list', views.get_entries_list, name='get-entries-list'),
+    path('add-comment', views.add_comment, name='add-comment'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

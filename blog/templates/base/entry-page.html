@@ -94,20 +94,20 @@
         </article>
 
 
-        <div class="comments-wrap">
+        <div class="comments-wrap" id="entry-page-comments">
 
             <div id="comments" class="column large-12">
 
-                <h3 class="h2">5 Comments</h3>
+                <h3 class="h2">{{ entry.comments_list|length }} Comment{% if entry.comments_list.count > 1 %}s{% endif %}</h3>
 
                 <ol class="commentlist">
 
                     {% for comment in entry.comments_list %}
                     {% if not comment.parent %}
-                    <li class="thread-alt depth-1 comment">
+                    <li id="comment-{{ comment.id }}" class="thread-alt depth-1 comment">
 
                         <div class="comment__avatar">
-                            <img class="avatar" src="{{ comment.author.avatar.url }}" alt="" width="50" height="50">
+                            <img class="avatar" src="{{ comment.avatar_url }}" alt="" width="50" height="50">
                         </div>
 
                         <div class="comment__content">
@@ -118,7 +118,7 @@
                                 <div class="comment__meta">
                                     <div class="comment__time">{{ comment.pub_date|date:'F j, Y' }}</div>
                                     <div class="comment__reply">
-                                        <a class="comment-reply-link" href="">Reply</a>
+                                        <a class="comment-reply-link" href="" @click.prevent="reply({{ comment.id }})">Reply</a>
                                     </div>
                                 </div>
                             </div>
@@ -136,7 +136,7 @@
                             <li class="depth-2 comment">
 
                                 <div class="comment__avatar">
-                                    <img class="avatar" src="{{ reply.author.avatar.url }}" alt="" width="50" height="50">
+                                    <img class="avatar" src="{{ reply.avatar_url }}" alt="" width="50" height="50">
                                 </div>
 
                                 <div class="comment__content">
@@ -174,24 +174,32 @@
 
                 <div id="respond">
     
-                    <h3 class="h2">Add Comment <span>Your email address will not be published</span></h3>
+                    <h3 v-if="mode === 'comment'" class="h2">Add Comment <span>Your email address will not be published</span></h3>
+                    <h3 v-if="mode === 'reply'" class="h2">Add Reply <span>Your email address will not be published</span></h3>
+
+                    <p v-if="mode === 'reply'" class="reply-details">
+                        Response to comment by [[ replyTargetAuthor ]] ([[ replyTargetPubDate ]])
+                    </p>
     
                     <form name="contactForm" id="contactForm" method="post" action="" autocomplete="off">
                         <fieldset>
+
+                            {% csrf_token %}
+                            <input type="hidden" name="entry-id" value="{{ entry.id }}">
     
                             <div class="form-field">
-                                <input name="cName" id="cName" class="full-width" placeholder="Your Name" value="" type="text">
+                                <input v-model="formData.name" class="full-width" placeholder="Your Name" type="text">
                             </div>
     
                             <div class="form-field">
-                                <input name="cEmail" id="cEmail" class="full-width" placeholder="Your Email" value="" type="text">
+                                <input v-model="formData.email" class="full-width" placeholder="Your Email" type="text">
                             </div>
     
                             <div class="message form-field">
-                                <textarea name="cMessage" id="cMessage" class="full-width" placeholder="Your Message"></textarea>
+                                <textarea v-model="formData.message" class="full-width" placeholder="Your Message"></textarea>
                             </div>
     
-                            <input name="submit" id="submit" class="btn btn--primary btn-wide btn--large full-width" value="Add Comment" type="submit">
+                            <input @click.prevent="send" class="btn btn--primary btn-wide btn--large full-width" value="Add Comment" type="submit">
     
                         </fieldset>
                     </form>
@@ -204,5 +212,169 @@
     </main>
 
 </div>
+
+<script> successToast('Your comment was added.');
+
+    const initFormData = {
+        name: '',
+        email: '',
+        message: '',
+    };
+
+    const EntryPageComments = new Vue({
+    
+        el: '#entry-page-comments',
+    
+        delimiters: ['[[', ']]'],
+    
+        data() {
+            return {
+
+                mode: 'comment',
+                formData: clone(initFormData),
+
+                replyTargetAuthor: '',
+                replyTargetPubDate: '',
+
+                validationRules: {
+                    name: {
+                        fieldName: 'Name',
+                        type: 'text',
+                        required: true,
+                        max: 150,
+                    },
+                    email: {
+                        fieldName: 'Email',
+                        type: 'text',
+                        required: false,
+                        validation: 'email',
+                        max: 100,
+                    },
+                    message: {
+                        fieldName: 'Message',
+                        type: 'text',
+                        required: true,
+                        max: 1000,
+                    },
+                },
+
+                errors: {
+                    name: false,
+                    email: false,
+                    message: false,
+                },
+            }
+        },
+
+        mixins: [CsrfToken],
+    
+        methods: {
+
+            reply(commentId) {
+
+                this.replyTargetAuthor = $('#comment-'+commentId+' .comment__author').text();
+                this.replyTargetPubDate = $('#comment-'+commentId+' .comment__time').text();
+                this.mode = 'reply';
+            },
+            
+            send() {
+                if (!this.validateForm()) return;
+
+                $.ajax({
+                    url: '/add-comment',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        form_data: JSON.stringify(this.formData),
+                        entry_id: $('input[name="entry-id"]').val(),
+                        csrfmiddlewaretoken: this.csrfToken,
+                    },
+                    success: function(response) {
+
+                        successToast('Your comment was added.');
+                    }.bind(this)
+                });
+            },
+
+            validateForm() {
+                let valid = true;
+
+                for (let error in this.errors) {
+                    this.errors[error] = false;
+                }
+
+                for (let field in this.formData) {
+
+                    let rules = this.validationRules[field] || null;
+                    let value = this.formData[field];
+
+                    if (!rules) continue;
+
+                    if (rules.required) {
+                        let error = '';
+
+                        switch (rules.type) {
+                            case 'text': {
+                                if (value === '') {
+                                    error = `Field '${rules.fieldName}' is required.`
+                                }
+                                break;
+                            }
+                        }
+
+                        if (error.length > 0) {
+                            this.errors[field] = true;
+                            errorToast(error);
+                            valid = false;
+                        }  
+                    }
+
+                    if (rules.validation && value.length > 0) {
+                        let error = '';
+
+                        switch (rules.validation) {
+
+                            case 'email': {
+                                let regex = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+                                if (!regex.test(String(value).toLowerCase())) {
+                                    error = `Field '${rules.fieldName}' must be a valid email address.`;
+                                }
+                                break;
+                            }
+                        }
+
+                        if (error.length > 0) {
+                            this.errors[field] = true;
+                            errorToast(error);
+                            valid = false;
+                        }
+                    }
+
+                    //if field length smaller than min rule length
+                    if (valid && rules.min && value.length < rules.min) {
+                        errorToast(
+                            `Field '${rules.fieldName}' is smaller than min field constraint (${rules.min} symbols).`
+                        );
+                        this.errors[field] = true;
+                        valid = false;
+                    }
+
+                    //if field length bigger than max rule length
+                    if (valid && rules.max && value.length > rules.max) {
+                        errorToast(
+                            `Field '${rules.fieldName}' is bigger than max field constraint (${value.length}/${rules.max} symbols).`
+                        );
+                        this.errors[field] = true;
+                        valid = false;
+                    }
+                }
+
+                return valid;
+            }
+        },
+    
+    });
+    
+</script>
 
 {% endblock %}
