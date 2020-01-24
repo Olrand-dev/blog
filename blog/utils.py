@@ -33,3 +33,16 @@ class ApiResponse():
     def get_resp_data(self):
 
         return self.make_resp()
+
+
+
+def string_sanitize(string):
+    for char in [
+        '"', '<', '>', ':', ';', 
+        '=', '$', '#', '%', '&', 
+        '*', '~', '`', '/', '|', 
+        '\\', '{', '}', '[', ']',
+    ]:
+        if char in string:
+            string = string.replace(char, '')
+    return string

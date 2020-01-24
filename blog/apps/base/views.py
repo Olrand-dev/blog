@@ -3,7 +3,7 @@ from itertools import chain
 from django.core.paginator import Paginator
 from django.shortcuts import render
 from django.http import JsonResponse
-from blog.utils import ApiResponse
+from blog.utils import ApiResponse, string_sanitize
 from blog import const
 from .models import Entry, Author, Article, VideoArticle, Category, Tag, Comment
 from django.templatetags.static import static
@@ -178,19 +178,22 @@ def get_comment_details(comment):
     return comment
 
 
-def add_comment(request): #todo -> add form data sanitize
+def add_comment(request):
     form_data = json.loads(request.POST['form_data'])
     entry_id = int(request.POST['entry_id'])
+    is_reply = int(request.POST['is_reply']) == 1
+    reply_parent_id = int(request.POST['reply_parent_id'])
     resp = ApiResponse()
 
     entry = Entry.objects.get(pk=entry_id)
+    name = string_sanitize(form_data['name'])
+    email = string_sanitize(form_data['email'])
+    message = string_sanitize(form_data['message'])
 
-    comment = Comment(
-        entry=entry, 
-        text=form_data['message'],
-        a_name=form_data['name'],
-        a_email=form_data['email'],
-    )
+    comment = Comment(entry=entry, text=message, a_name=name, a_email=email)
+
+    if is_reply:
+        comment.parent = Comment.objects.get(pk=reply_parent_id)
+
     comment.save()
-
     return JsonResponse(resp.get_resp_data())

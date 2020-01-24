@@ -142,7 +142,7 @@
                                 <div class="comment__content">
 
                                     <div class="comment__info">
-                                        <div class="comment__author">{{reply.author.user.first_name}} {{reply.author.user.last_name}}</div>
+                                        <div class="comment__author">{{ reply.author_name }}</div>
 
                                         <div class="comment__meta">
                                             <div class="comment__time">{{ reply.pub_date|date:'F j, Y' }}</div>
@@ -317,7 +317,7 @@
                     data: {
                         form_data: JSON.stringify(this.formData),
                         entry_id: $('input[name="entry-id"]').val(),
-                        reply: (this.mode === 'reply') ? 1 : 0,
+                        is_reply: (this.mode === 'reply') ? 1 : 0,
                         reply_parent_id: this.replyTargetId,
                         csrfmiddlewaretoken: this.csrfToken,
                     },
@@ -334,10 +334,10 @@
                         }, 1500);
                         
                     }.bind(this),
-                    error() {
+                    error: function() {
 
                         this.commentSendError();
-                    }
+                    }.bind(this)
                 });
             },
 
