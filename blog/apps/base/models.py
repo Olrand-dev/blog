@@ -115,3 +115,16 @@ class Comment(models.Model):
             return f'{self.a_name}, {self.a_email} - {p_date}'
         else:
             return f'{self.author.user.first_name} {self.author.user.last_name} - {p_date}'
+
+
+class Search(models.Lookup):
+    lookup_name = 'search'
+
+    def as_mysql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        params = lhs_params + rhs_params
+        return 'MATCH (%s) AGAINST (%s IN BOOLEAN MODE)' % (lhs, rhs), params
+
+models.CharField.register_lookup(Search)
+models.TextField.register_lookup(Search)

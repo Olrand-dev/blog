@@ -3,16 +3,16 @@
  *
  * ------------------------------------------------------------------- */
 
-(function($) {
+(function ($) {
 
     "use strict";
-    
-    var cfg = {
-        scrollDuration : 800, // smoothscroll duration
-        mailChimpURL   : ''   // mailchimp url
-    },
 
-    $WIN = $(window);
+    var cfg = {
+            scrollDuration: 800, // smoothscroll duration
+            mailChimpURL: '' // mailchimp url
+        },
+
+        $WIN = $(window);
 
     // Add the User Agent to the <html>
     // will be used for IE10/IE11 detection (Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0; rv:11.0))
@@ -20,103 +20,77 @@
     doc.setAttribute('data-useragent', navigator.userAgent);
 
 
-   /* Preloader
-    * -------------------------------------------------- */
-    var ssPreloader = function() {
-        
+    /* Preloader
+     * -------------------------------------------------- */
+    var ssPreloader = function () {
+
         $("html").addClass('ss-preload');
 
-        $WIN.on('load', function() {
+        $WIN.on('load', function () {
 
             //force page scroll position to top at page refresh
             // $('html, body').animate({ scrollTop: 0 }, 'normal');
 
             // will first fade out the loading animation 
-            $("#loader").fadeOut("slow", function() {
+            $("#loader").fadeOut("slow", function () {
                 // will fade out the whole DIV that covers the website.
                 $("#preloader").delay(300).fadeOut("slow");
-            }); 
-            
+            });
+
             // for hero content animations 
             $("html").removeClass('ss-preload');
             $("html").addClass('ss-loaded');
-        
+
         });
     };
 
 
-   /* Pretty Print
-    * -------------------------------------------------- */
-    var ssPrettyPrint = function() {
+    /* Pretty Print
+     * -------------------------------------------------- */
+    var ssPrettyPrint = function () {
         $('pre').addClass('prettyprint');
-        $( document ).ready(function() {
+        $(document).ready(function () {
             prettyPrint();
         });
     };
 
-   
-   /* search
-    * ------------------------------------------------------ */
-    var ssSearch = function() {
-            
+
+    /* search
+     * ------------------------------------------------------ */
+    var ssSearch = function () {
+
         var searchWrap = $('.header__search'),
-            searchField = searchWrap.find('.search-field'),
-            closeSearch = searchWrap.find('.header__search-close'),
-            searchTrigger = $('.header__search-trigger'),
-            siteBody = $('body');
+            searchField = searchWrap.find('.header__search-field'),
+            searchTrigger = $('.header__search-trigger');
 
 
-        searchTrigger.on('click', function(e) {
-            
+        $('#search-form').on($.modal.OPEN, function (event, modal) {
+            searchField.focus();
+        });
+
+        $('#search-form').on($.modal.BEFORE_CLOSE, function (event, modal) {
+            searchField.blur();
+        });
+
+        searchTrigger.on('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
-        
-            var $this = $(this);
-        
-            siteBody.addClass('search-is-visible');
-            setTimeout(function(){
-                searchWrap.find('.search-field').focus();
-            }, 100);
-        
         });
 
-        closeSearch.on('click', function(e) {
-
-            var $this = $(this);
-        
-            e.stopPropagation(); 
-        
-            if(siteBody.hasClass('search-is-visible')){
-                siteBody.removeClass('search-is-visible');
-                setTimeout(function(){
-                    searchWrap.find('.search-field').blur();
-                }, 100);
-            }
-        });
-
-        searchWrap.on('click',  function(e) {
-            if( !$(e.target).is('.search-field') ) {
-                closeSearch.trigger('click');
-            }
-        });
-            
-        searchField.on('click', function(e){
+        searchField.on('click', function (e) {
             e.stopPropagation();
         });
-            
-        searchField.attr({placeholder: 'Type Keywords', autocomplete: 'off'});
-
     };
 
 
-   /* menu
-    * ------------------------------------------------------ */
-    var ssMenu = function() {
+    /* menu
+     * ------------------------------------------------------ */
+    var ssMenu = function () {
 
         var menuToggle = $('.header__menu-toggle'),
             siteBody = $('body');
-    
-        menuToggle.on('click', function(e) {
+
+        menuToggle.on('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
             menuToggle.toggleClass('is-clicked');
@@ -124,7 +98,7 @@
         });
 
         $('.header__nav .has-children').children('a').on('click', function (e) {
-            
+
             e.preventDefault();
 
             $(this).toggleClass('sub-menu-is-open')
@@ -142,10 +116,10 @@
     };
 
 
-   /* masonry
-    * ---------------------------------------------------- */ 
+    /* masonry
+     * ---------------------------------------------------- */
     var ssMasonryFolio = function () {
-        
+
         var containerBricks = $('.masonry');
 
         containerBricks.masonry({
@@ -156,25 +130,25 @@
         });
 
         // layout Masonry after each image loads
-        containerBricks.imagesLoaded().progress( function() {
+        containerBricks.imagesLoaded().progress(function () {
             containerBricks.masonry('layout');
         });
 
     };
 
-   /* animate bricks
-    * ------------------------------------------------------ */
-    var ssBricksAnimate = function() {
+    /* animate bricks
+     * ------------------------------------------------------ */
+    var ssBricksAnimate = function () {
 
         var animateEl = $('.animate-this');
 
-        $WIN.on('load', function() {
+        $WIN.on('load', function () {
 
-            setTimeout(function() {
-                animateEl.each(function(ctr) {
+            setTimeout(function () {
+                animateEl.each(function (ctr) {
                     var el = $(this);
-                    
-                    setTimeout(function() {
+
+                    setTimeout(function () {
                         el.addClass('animated');
                     }, ctr * 200);
                 });
@@ -182,7 +156,7 @@
 
         });
 
-        $WIN.on('resize', function() {
+        $WIN.on('resize', function () {
             // remove animation classes
             animateEl.removeClass('animate-this animated');
         });
@@ -190,9 +164,9 @@
     };
 
 
-   /* slick slider
-    * ------------------------------------------------------ */
-    var ssSlickSlider = function() {
+    /* slick slider
+     * ------------------------------------------------------ */
+    var ssSlickSlider = function () {
 
         var $gallery = $('.slider__slides').slick({
             arrows: false,
@@ -205,24 +179,24 @@
             fade: true,
             cssEase: 'linear'
         });
-        
-        $('.slider__slide').on('click', function() {
-            $gallery.slick('slickGoTo', parseInt($gallery.slick('slickCurrentSlide'))+1);
+
+        $('.slider__slide').on('click', function () {
+            $gallery.slick('slickGoTo', parseInt($gallery.slick('slickCurrentSlide')) + 1);
         });
 
     };
 
 
-   /* smooth scrolling
-    * ------------------------------------------------------ */
-    var ssSmoothScroll = function() {
-        
+    /* smooth scrolling
+     * ------------------------------------------------------ */
+    var ssSmoothScroll = function () {
+
         $('.smoothscroll').on('click', function (e) {
             var target = this.hash,
-            $target    = $(target);
-            
-                e.preventDefault();
-                e.stopPropagation();
+                $target = $(target);
+
+            e.preventDefault();
+            e.stopPropagation();
 
             $('html, body').stop().animate({
                 'scrollTop': $target.offset().top
@@ -240,30 +214,30 @@
     };
 
 
-   /* alert boxes
-    * ------------------------------------------------------ */
-    var ssAlertBoxes = function() {
+    /* alert boxes
+     * ------------------------------------------------------ */
+    var ssAlertBoxes = function () {
 
-        $('.alert-box').on('click', '.alert-box__close', function() {
+        $('.alert-box').on('click', '.alert-box__close', function () {
             $(this).parent().fadeOut(500);
-        }); 
+        });
 
     };
 
 
-   /* Back to Top
-    * ------------------------------------------------------ */
-    var ssBackToTop = function() {
-        
-        var pxShow      = 500,
+    /* Back to Top
+     * ------------------------------------------------------ */
+    var ssBackToTop = function () {
+
+        var pxShow = 500,
             goTopButton = $(".go-top")
 
         // Show or hide the button
         if ($(window).scrollTop() >= pxShow) goTopButton.addClass('link-is-visible');
 
-        $(window).on('scroll', function() {
+        $(window).on('scroll', function () {
             if ($(window).scrollTop() >= pxShow) {
-                if(!goTopButton.hasClass('link-is-visible')) goTopButton.addClass('link-is-visible')
+                if (!goTopButton.hasClass('link-is-visible')) goTopButton.addClass('link-is-visible')
             } else {
                 goTopButton.removeClass('link-is-visible')
             }
@@ -271,8 +245,8 @@
     };
 
 
-   /* Initialize
-    * ------------------------------------------------------ */
+    /* Initialize
+     * ------------------------------------------------------ */
     (function clInit() {
 
         ssPreloader();

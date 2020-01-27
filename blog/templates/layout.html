@@ -2,6 +2,7 @@
 
 <!DOCTYPE html>
 <html class="no-js" lang="en">
+
 <head>
 
     <!--- basic page needs
@@ -17,6 +18,7 @@
 
     <!-- CSS
     ================================================== -->
+    <link rel="stylesheet" href="{% static 'base/css/vue-toasts.css' %}">
     <link rel="stylesheet" href="{% static 'base/css/base.css' %}">
     <link rel="stylesheet" href="{% static 'base/css/vendor.css' %}">
     <link rel="stylesheet" href="{% static 'base/css/main.css' %}">
@@ -26,7 +28,7 @@
     ================================================== -->
     <script src="{% static 'base/js/modernizr.js' %}"></script>
     <script src="{% static 'base/js/vue.min.js' %}"></script>
-    <script src="{% static 'base/js/vuex.min.js' %}"></script>
+    <script src="{% static 'base/js/vue-toasts.min.js' %}"></script>
     <script src="{% static 'base/js/jquery-3.2.1.min.js' %}"></script>
     <script src="{% static 'base/js/utils.js' %}"></script>
     <script src="{% static 'base/js/mixins.js' %}"></script>
@@ -58,6 +60,7 @@
         <header class="s-header">
 
             <div class="header__top">
+
                 <div class="header__logo">
                     <a class="site-logo" href="index.html">
                         <img src="{% static 'base/img/logo.svg' %}" alt="Homepage">
@@ -65,47 +68,47 @@
                 </div>
 
                 <div class="header__search">
-    
-                    <form role="search" method="get" class="header__search-form" action="#">
+
+                    <form id="search-form" role="search" method="post" action="/search" class="header__search-form">
+                        {% csrf_token %}
                         <label>
                             <span class="hide-content">Search for:</span>
-                            <input type="search" class="header__search-field" placeholder="Type Keywords" value="" name="s" title="Search for:" autocomplete="off">
+                            <input type="search" class="header__search-field" placeholder="Type Keywords" value=""
+                                name="query" title="Search for:" autocomplete="off">
                         </label>
                         <input type="submit" class="header__search-submit" value="Search">
                     </form>
-        
-                    <a href="#0" title="Close Search" class="header__search-close">Close</a>
-        
-                </div>  <!-- end header__search -->
+
+                </div>
 
                 <!-- toggles -->
-                <a href="#0" class="header__search-trigger"></a>
+                <a href="#search-form" rel="modal:open" class="header__search-trigger"></a>
                 <a href="#0" class="header__menu-toggle"><span>Menu</span></a>
 
-            </div> <!-- end header__top -->
+            </div>
 
             <nav class="header__nav-wrap">
 
                 <ul class="header__nav">
-                    <li class="current"><a href="index.html" title="">Home</a></li>
+                    <li class="current"><a href="/" title="">Home</a></li>
                     <li class="has-children">
                         <a href="#0" title="">Categories</a>
                         <ul class="sub-menu">
-                        <li><a href="category.html">Lifestyle</a></li>
-                        <li><a href="category.html">Health</a></li>
-                        <li><a href="category.html">Family</a></li>
-                        <li><a href="category.html">Management</a></li>
-                        <li><a href="category.html">Travel</a></li>
-                        <li><a href="category.html">Work</a></li>
+                            <li><a href="category.html">Lifestyle</a></li>
+                            <li><a href="category.html">Health</a></li>
+                            <li><a href="category.html">Family</a></li>
+                            <li><a href="category.html">Management</a></li>
+                            <li><a href="category.html">Travel</a></li>
+                            <li><a href="category.html">Work</a></li>
                         </ul>
                     </li>
                     <li class="has-children">
                         <a href="#0" title="">Blog Posts</a>
                         <ul class="sub-menu">
-                        <li><a href="single-video.html">Video Post</a></li>
-                        <li><a href="single-audio.html">Audio Post</a></li>
-                        <li><a href="single-gallery.html">Gallery Post</a></li>
-                        <li><a href="single-standard.html">Standard Post</a></li>
+                            <li><a href="single-video.html">Video Post</a></li>
+                            <li><a href="single-audio.html">Audio Post</a></li>
+                            <li><a href="single-gallery.html">Gallery Post</a></li>
+                            <li><a href="single-standard.html">Standard Post</a></li>
                         </ul>
                     </li>
                     <li><a href="styles.html" title="">Styles</a></li>
@@ -136,19 +139,19 @@
                     </li>
                 </ul>
 
-            </nav> <!-- end header__nav-wrap -->
+            </nav>
 
-            
 
-        </header> <!-- end s-header -->
+
+        </header>
 
 
 
         <div class="content-wrap">
-            
+
             {% block content %}{% endblock %}
 
-        </div> <!-- end s-content -->
+        </div>
 
 
 
@@ -158,7 +161,7 @@
             <div class="row">
                 <div class="column large-full footer__content">
                     <div class="footer__copyright">
-                        <span>© Copyright Typerite 2019</span> 
+                        <span>© Copyright Typerite 2019</span>
                         <span>Design by <a href="https://www.styleshout.com/">StyleShout</a></span>
                     </div>
                 </div>
@@ -169,7 +172,7 @@
             </div>
         </footer>
 
-    </div> <!-- end s-wrap -->
+    </div>
 
 
     <!-- Java Script
@@ -178,3 +181,5 @@
     <script src="{% static 'base/js/main.js' %}"></script>
 
 </body>
+
+</html>

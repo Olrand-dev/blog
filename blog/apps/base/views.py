@@ -1,29 +1,70 @@
 import json
 from itertools import chain
 from django.core.paginator import Paginator
+from django.db.models import Q
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.templatetags.static import static
 from blog.utils import ApiResponse, string_sanitize
 from blog import const
 from .models import Entry, Author, Article, VideoArticle, Category, Tag, Comment
-from django.templatetags.static import static
+
 
 def index(request):
-    entries_list = get_entries_list()
+    show_all_entries_list(request)
+
+
+def show_all_entries_list(request): #todo -> доработать систему вывода списков записей
+
+    return render(request, 'base/entries-list.html', {
+        'page_obj': get_paginated_entries_list(request, 'all')
+    })
+
+
+def get_paginated_entries_list(request, list_type):
+
+    entries_list = get_entries_list(list_type)
 
     per_page = request.GET.get('per_page', const.PER_PAGE)
     page = request.GET.get('page', 1)
     page_obj = paginate(entries_list, page, per_page)
 
-    return render(request, 'base/index.html', {
-        'page_obj': page_obj
-    })
+    return page_obj
 
 
 def paginate(entries_list, page=1, per_page=const.PER_PAGE):
 
     paginator = Paginator(entries_list, per_page)
     return paginator.get_page(page)
+
+
+def get_entries_list(only_list=False):
+
+    articles = Article.objects.all()
+    video_articles = VideoArticle.objects.all()
+    entries_data = sorted(chain(articles, video_articles), key=lambda i: i.pub_date)
+    if only_list:
+        return entries_data
+
+    for entry_data in entries_data:
+        entry_data = get_entry_details(entry_data)
+
+    return entries_data
+
+
+def get_cat_entries_list(cat_id, only_list=False):
+    category = Category.objects.get(pk=cat_id)
+    entries = sorted(category.entry_set.all(), key=lambda i: i.pub_date)
+    for entry_data in entries:
+        entry_data.entry_type = get_entry_type(entry_data.id)
+
+    if only_list:
+        return entries
+    
+    for entry_data in entries:
+        entry_data = get_entry_details(entry_data)
+
+    return entries
 
 
 def get_entry_type(entry_id):
@@ -64,11 +105,20 @@ def show_tag_list(request):
     pass
 
 
-def show_year_archive(request):
+def show_search_list(request):
+    query = request.POST['query']
+    resp = ApiResponse()
+
+    entries_list = Entry.objects.filter(Q(header__search=query) | Q(text__search=query))
+    resp.data = list(entries_list.values())
+    return JsonResponse(resp.get_resp_data())
+
+
+def show_year_archive_list(request):
     pass
 
 
-def show_month_archive(request):
+def show_month_archive_list(request):
     pass
 
 
@@ -99,35 +149,6 @@ def get_user_data(request):
 
     resp.data = data
     return JsonResponse(resp.get_resp_data())
-
-
-def get_entries_list(only_list=False):
-
-    articles = Article.objects.all()
-    video_articles = VideoArticle.objects.all()
-    entries_data = sorted(chain(articles, video_articles), key=lambda i: i.pub_date)
-    if only_list:
-        return entries_data
-
-    for entry_data in entries_data:
-        entry_data = get_entry_details(entry_data)
-
-    return entries_data
-
-
-def get_cat_entries_list(cat_id, only_list=False):
-    category = Category.objects.get(pk=cat_id)
-    entries = sorted(category.entry_set.all(), key=lambda i: i.pub_date)
-    for entry_data in entries:
-        entry_data.entry_type = get_entry_type(entry_data.id)
-
-    if only_list:
-        return entries
-    
-    for entry_data in entries:
-        entry_data = get_entry_details(entry_data)
-
-    return entries
 
 
 def get_entry_details(base_data, full=False):

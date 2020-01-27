@@ -8,6 +8,29 @@
     opacity: 0;
 }
 
+.header__search-form {
+    position: static !important;
+    margin-top: 50px !important;
+}
+
+.header__search-form input[type="search"] {
+    font-size: 21px !important;
+}
+
+.header__search-form input[type="submit"] {
+    display: block !important;
+}
+
+.header__search-form::after {
+    content: "" !important;
+    margin-top: 0 !important;
+}
+
+.header__search-submit {
+    margin: 0 auto !important;
+    height: 40px !important;
+    line-height: 38px !important;
+}
 
 .related__link img {
     max-height: 200px;

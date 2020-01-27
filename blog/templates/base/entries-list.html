@@ -1,3 +1,10 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Blog | Entries list{% endblock %}
+
+{% block content %}
+
 <div id="entries-list" class="s-content">
     <div class="masonry-wrap">
 
@@ -83,6 +90,7 @@
     </div>
 
     <div class="row pagination">
+
         <div class="column large-full">
             <nav class="pgn">
                 <ul>
@@ -102,17 +110,28 @@
             
                     {% if page_obj.has_next %}
                         <li>
-                            <a class="pgn__next" href="?page={{ page_obj.next_page_number }}">Next</a>
+                            <a class="pgn__next" href="{% url 'base:' entry.pub_date.year entry.pub_date.month %}?page={{ page_obj.next_page_number }}">Next</a>
                         </li>
                     {% endif %}
                 </ul>
             </nav>
         </div>
+
+        <div class="column large-full">
+            <div class="per-page-select">
+                <select v-model="perPage" @change="onPerPageChanged">
+                    <option value=6>6</option>
+                    <option value=12>12</option>
+                    <option value=24>24</option>
+                </select>
+            </div>
+        </div>
+
     </div>
 
 </div>
 
-<script>
+<script> successToast('test');
 
     const EntriesList = new Vue({
     
@@ -122,14 +141,31 @@
     
         data() {
             return {
-    
+                perPage: 6,
             }
         },
     
         methods: {
             
+            onPerPageChanged(e) {
+                $.ajax({
+                    url: '/write-s-data',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        data: JSON.stringify([
+                            {key: 'per_page', value: e.target.value},
+                        ]),
+                    },
+                    success: function (response) {
+
+                    }.bind(this)
+                });
+            }
         },
     
     });
     
 </script>
+
+{% endblock %}
