@@ -1,4 +1,5 @@
 import json
+import datetime
 from itertools import chain
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -11,19 +12,74 @@ from .models import Entry, Author, Article, VideoArticle, Category, Tag, Comment
 
 
 def index(request):
-    show_all_entries_list(request)
+    return show_all_entries_list(request)
 
 
-def show_all_entries_list(request): #todo -> доработать систему вывода списков записей
+def show_all_entries_list(request):
 
     return render(request, 'base/entries-list.html', {
-        'page_obj': get_paginated_entries_list(request, 'all')
+        'page_obj': get_paginated_entries_list(request, 'all'),
+        'list_type': 'all',
     })
 
 
-def get_paginated_entries_list(request, list_type):
+def show_cat_list(request, cat_alias):
+    cat = Category.objects.get(alias=cat_alias)
 
-    entries_list = get_entries_list(list_type)
+    return render(request, 'base/entries-list.html', {
+        'page_obj': get_paginated_entries_list(request, 'cat', {'cat_alias': cat_alias}),
+        'list_type': 'cat',
+        'cat_name': cat.name,
+    })
+
+
+def show_tag_list(request, tag_alias):
+    tag = Tag.objects.get(alias=tag_alias)
+
+    return render(request, 'base/entries-list.html', {
+        'page_obj': get_paginated_entries_list(request, 'tag', {'tag_alias': tag_alias}),
+        'list_type': 'tag',
+        'tag_name': tag.name,
+    })
+
+
+def show_search_list(request):
+    query = request.POST['query']
+
+    return render(request, 'base/entries-list.html', {
+        'page_obj': get_paginated_entries_list(
+            request, 'search', {'search_query': query}
+        ),
+        'list_type': 'search',
+        'search_query': query,
+    })
+
+
+def show_year_archive_list(request, year):
+
+    return render(request, 'base/entries-list.html', {
+        'page_obj': get_paginated_entries_list(request, 'year_archive', {'year': year}),
+        'list_type': 'year_archive',
+        'year': year,
+    })
+
+
+def show_month_archive_list(request, year, month):
+    date = datetime.date(year, month, 1)
+
+    return render(request, 'base/entries-list.html', {
+        'page_obj': get_paginated_entries_list(
+            request, 'month_archive', {'year': year, 'month': month}
+        ),
+        'list_type': 'month_archive',
+        'year': year,
+        'month': date.strftime("%B"),
+    })
+
+
+def get_paginated_entries_list(request, list_type='all', options=None):
+
+    entries_list = get_entries_list(list_type=list_type, options=options)
 
     per_page = request.GET.get('per_page', const.PER_PAGE)
     page = request.GET.get('page', 1)
@@ -32,18 +88,47 @@ def get_paginated_entries_list(request, list_type):
     return page_obj
 
 
-def paginate(entries_list, page=1, per_page=const.PER_PAGE):
+def paginate(data_list, page=1, per_page=const.PER_PAGE):
 
-    paginator = Paginator(entries_list, per_page)
+    paginator = Paginator(data_list, per_page)
     return paginator.get_page(page)
 
 
-def get_entries_list(only_list=False):
+def get_entries_list(only_list=False, list_type='all', options=None):
 
-    articles = Article.objects.all()
-    video_articles = VideoArticle.objects.all()
-    entries_data = sorted(chain(articles, video_articles), key=lambda i: i.pub_date)
-    if only_list:
+    if list_type == 'all':
+        articles = Article.objects.all()
+        video_articles = VideoArticle.objects.all()
+
+        entries_data = chain(articles, video_articles)
+
+    elif list_type == 'cat':
+        cat = Category.objects.get(alias=options['cat_alias'])
+        entries_data = cat.entry_set.all()
+
+    elif list_type == 'tag':
+        tag = Tag.objects.get(alias=options['tag_alias'])
+        entries_data = tag.entry_set.all()
+
+    elif list_type == 'search':
+        query = options['search_query']
+        entries_data = Entry.objects.filter(Q(header__search=query) | Q(text__search=query))
+
+    elif list_type == 'year_archive':
+        tag = Tag.objects.get(alias=options['tag_alias'])
+        entries_data = tag.entry_set.all()
+
+    elif list_type == 'month_archive':
+        tag = Tag.objects.get(alias=options['tag_alias'])
+        entries_data = tag.entry_set.all()
+
+    else:
+        entries_data = []
+
+    #todo -> разные виды сортировки
+    entries_data = sorted(entries_data, key=lambda i: i.pub_date)
+
+    if only_list or len(entries_data) == 0:
         return entries_data
 
     for entry_data in entries_data:
@@ -52,19 +137,44 @@ def get_entries_list(only_list=False):
     return entries_data
 
 
-def get_cat_entries_list(cat_id, only_list=False):
-    category = Category.objects.get(pk=cat_id)
-    entries = sorted(category.entry_set.all(), key=lambda i: i.pub_date)
-    for entry_data in entries:
-        entry_data.entry_type = get_entry_type(entry_data.id)
+def get_entry_details(base_data, full=False):
 
-    if only_list:
-        return entries
-    
-    for entry_data in entries:
-        entry_data = get_entry_details(entry_data)
+    entry_data = base_data
+    entry = Entry.objects.get(pk=entry_data.id)
+    author = Author.objects.get(pk=entry_data.author_id)
 
-    return entries
+    entry_data.category_name = entry.category.name
+    entry_data.category_alias = entry.category.alias
+    entry_data.author_name = f'{author.user.first_name} {author.user.last_name}'
+    entry_data.excerpt = entry_data.text[:150]
+    entry_data.entry_type = get_entry_type(entry_data.id)
+
+    if full:
+        entry_data.tags_list = entry_data.tags.all()
+
+        all_entries = get_entries_list(only_list=True, list_type='all')
+        e_index = [x.id for x in all_entries].index(entry_data.id)
+        if e_index > 0:
+            entry_data.prev_entry = all_entries[e_index - 1]
+        if e_index < (len(all_entries) - 1):
+            entry_data.next_entry = all_entries[e_index + 1]
+
+        cat = Category.objects.get(pk=entry_data.category_id)
+        cat_entries = get_entries_list(
+            list_type='cat', options={'cat_alias': cat.alias}
+        )
+        entry_data.related_entries = cat_entries[:3]
+
+        entry_data.comments_list = entry.comment_set.all()
+        for comment in entry_data.comments_list:
+            comment = get_comment_details(comment)
+
+            comment.children = comment.replies.all()
+            comment.child_count = comment.children.count()
+            for c_comment in comment.children:
+                c_comment = get_comment_details(c_comment)
+
+    return entry_data
 
 
 def get_entry_type(entry_id):
@@ -83,45 +193,18 @@ def get_entry_data_by_type(entry_type, entry_id):
         entry_data = Article.objects.get(pk=entry_id)
     elif entry_type == 'video':
         entry_data = VideoArticle.objects.get(pk=entry_id)
-    
+
     return entry_data
 
 
 def show_entry_page(request, entry_type, entry_id):
-    
+
     entry_data = get_entry_data_by_type(entry_type, entry_id)
     entry_data = get_entry_details(entry_data, True)
 
     return render(request, 'base/entry-page.html', {
         'entry': entry_data
     })
-
-
-def show_cat_list(request):
-    pass
-
-
-def show_tag_list(request):
-    pass
-
-
-def show_search_list(request):
-    query = request.POST['query']
-    resp = ApiResponse()
-
-    entries_list = Entry.objects.filter(Q(header__search=query) | Q(text__search=query))
-    resp.data = list(entries_list.values())
-    return JsonResponse(resp.get_resp_data())
-
-
-def show_year_archive_list(request):
-    pass
-
-
-def show_month_archive_list(request):
-    pass
-
-
 
 
 
@@ -149,42 +232,6 @@ def get_user_data(request):
 
     resp.data = data
     return JsonResponse(resp.get_resp_data())
-
-
-def get_entry_details(base_data, full=False):
-
-    entry_data = base_data
-    entry = Entry.objects.get(pk=entry_data.id)
-    author = Author.objects.get(pk=entry_data.author_id)
-
-    entry_data.category_name = entry.category.name
-    entry_data.category_alias = entry.category.alias
-    entry_data.author_name = f'{author.user.first_name} {author.user.last_name}'
-    entry_data.excerpt = entry_data.text[:150]
-
-    if full:
-        entry_data.tags_list = entry_data.tags.all()
-
-        all_entries = get_entries_list(True)
-        e_index = [x.id for x in all_entries].index(entry_data.id)
-        if e_index > 0:
-            entry_data.prev_entry = all_entries[e_index - 1]
-        if e_index < (len(all_entries) - 1):
-            entry_data.next_entry = all_entries[e_index + 1]
-
-        cat_entries = get_cat_entries_list(entry_data.category_id, True)
-        entry_data.related_entries = cat_entries[:3]
-
-        entry_data.comments_list = entry.comment_set.all()
-        for comment in entry_data.comments_list:
-            comment = get_comment_details(comment)
-
-            comment.children = comment.replies.all()
-            comment.child_count = comment.children.count()
-            for c_comment in comment.children:
-                c_comment = get_comment_details(c_comment)
-
-    return entry_data
 
 
 def get_comment_details(comment):

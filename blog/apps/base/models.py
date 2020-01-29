@@ -52,7 +52,9 @@ class Entry(BaseEntry):
         verbose_name_plural = 'entries'
 
     def __str__(self):
-        return f'{self.header} - {self.author.user.first_name} {self.author.user.last_name} - {self.pub_date.strftime("%Y-%m-%d %H:%M:%S")}'
+        f_name = self.author.user.first_name
+        l_name = self.author.user.last_name
+        return f'{self.header} - {f_name} {l_name} - {self.pub_date.strftime("%Y-%m-%d %H:%M:%S")}'
 
 
 class SpecialEntry(BaseEntry):

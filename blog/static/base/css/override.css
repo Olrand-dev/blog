@@ -32,6 +32,11 @@
     line-height: 38px !important;
 }
 
+.page-header {
+    margin-top: 0 !important;
+    margin-bottom: 7rem !important;
+}
+
 .related__link img {
     max-height: 200px;
     min-height: 200px;

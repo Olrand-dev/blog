@@ -113,10 +113,10 @@
                         <div class="comment__content">
 
                             <div class="comment__info">
-                                <div class="comment__author">{{ comment.author_name }}</div>
+                                <div class="p-comment__author">{{ comment.author_name }}</div>
 
                                 <div class="comment__meta">
-                                    <div class="comment__time">{{ comment.pub_date|date:'F j, Y' }}</div>
+                                    <div class="p-comment__time">{{ comment.pub_date|date:'F j, Y' }}</div>
                                     <div class="comment__reply">
                                         <a class="comment-reply-link" href="" @click.prevent="reply({{ comment.id }})">Reply</a>
                                     </div>
@@ -296,8 +296,8 @@
             reply(commentId) {
 
                 this.replyTargetId = commentId;
-                this.replyTargetAuthor = $('#comment-'+commentId+' .comment__author').text();
-                this.replyTargetPubDate = $('#comment-'+commentId+' .comment__time').text();
+                this.replyTargetAuthor = $('#comment-'+commentId+' .p-comment__author').text();
+                this.replyTargetPubDate = $('#comment-'+commentId+' .p-comment__time').text();
                 this.mode = 'reply';
             },
 

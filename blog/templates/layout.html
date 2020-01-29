@@ -69,7 +69,7 @@
 
                 <div class="header__search">
 
-                    <form id="search-form" role="search" method="post" action="/search" class="header__search-form">
+                    <form id="search-form" role="search" method="post" action="{% url 'base:search' %}" class="header__search-form">
                         {% csrf_token %}
                         <label>
                             <span class="hide-content">Search for:</span>

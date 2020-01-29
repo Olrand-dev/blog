@@ -1,4 +1,4 @@
-PER_PAGE = 2
+PER_PAGE = 6
 
 RESP_STATUS_SUCCESS = 'success'
 RESP_STATUS_ERROR = 'error'

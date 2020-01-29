@@ -6,6 +6,19 @@
 {% block content %}
 
 <div id="entries-list" class="s-content">
+
+    {% if list_type == 'cat' %}
+        <h3 class="page-header">Entries list by category: <span class="muted">"{{ cat_name }}"</span></h3>
+    {% elif list_type == 'tag' %}
+        <h3 class="page-header">Entries list by tag: <span class="muted">"{{ tag_name }}"</span></h3>
+    {% elif list_type == 'search' %}
+        <h3 class="page-header">Search results for: <span class="muted">"{{ search_query }}"</span></h3>
+    {% elif list_type == 'year_archive' %}
+        <h3 class="page-header">Entries archive for: <span class="muted">{{ year }}</span></h3>
+    {% elif list_type == 'month_archive' %}
+        <h3 class="page-header">Entries archive for: <span class="muted">{{ year }}, {{ month }}</span></h3>
+    {% endif %}
+
     <div class="masonry-wrap">
 
         <div class="masonry">
@@ -131,7 +144,7 @@
 
 </div>
 
-<script> successToast('test');
+<script>
 
     const EntriesList = new Vue({
     
