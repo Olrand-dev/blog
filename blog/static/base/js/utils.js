@@ -25,6 +25,18 @@ $(document).ready(function () {
         });
         return false;
     });
+    
+
+    //smooth scroll to anchor
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+    
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
 
 
     /* $.ajax({
@@ -89,6 +101,20 @@ function serverErrorToast(msg, duration = 15000) {
     });
 }
 
+
+let refreshPageTimer = null;
+function refreshPage(timer = 0, fromCache = true) {
+
+    if (!!refreshPageTimer) clearTimeout(refreshPageTimer);
+    
+    if (timer > 0) {
+        refreshPageTimer = setTimeout(() => {
+            document.location.reload(!fromCache);
+        }, timer);
+    } else {
+        document.location.reload(!fromCache);
+    }
+}
 
 function hop(obj, prop) {
     if (!isObject(obj)) return false;

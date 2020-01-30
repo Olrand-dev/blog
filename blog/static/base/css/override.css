@@ -37,6 +37,22 @@
     margin-bottom: 7rem !important;
 }
 
+select {
+    cursor: pointer;
+}
+
+.list-options {
+    text-align: center;
+    margin-bottom: 40px;
+}
+.list-options select {
+    margin-right: 25px;
+}
+.list-options .per-page-select,
+.list-options .sort-type-select {
+    display: inline;
+}
+
 .related__link img {
     max-height: 200px;
     min-height: 200px;

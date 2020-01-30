@@ -118,7 +118,7 @@
                                 <div class="comment__meta">
                                     <div class="p-comment__time">{{ comment.pub_date|date:'F j, Y' }}</div>
                                     <div class="comment__reply">
-                                        <a class="comment-reply-link" href="" @click.prevent="reply({{ comment.id }})">Reply</a>
+                                        <a class="comment-reply-link" href="#respond" @click="reply({{ comment.id }})">Reply</a>
                                     </div>
                                 </div>
                             </div>
@@ -321,17 +321,15 @@
                         reply_parent_id: this.replyTargetId,
                         csrfmiddlewaretoken: this.csrfToken,
                     },
-                    success: function(response) { console.log(response);
+                    success: function(response) {
 
-                        if (response.status === RESP_STATUS_ERROR) { console.log(123);
+                        if (response.status === RESP_STATUS_ERROR) {
                             this.commentSendError();
                             return;
                         }
 
                         this.commentSendResult = 'success';
-                        setTimeout(() => {
-                            document.location.reload(true);
-                        }, 1500);
+                        refreshPage(1500, false);
                         
                     }.bind(this),
                     error: function() {
@@ -343,6 +341,7 @@
 
             commentSendError() {
                 this.commentSendResult = 'error';
+
                 setTimeout(function() {
                     this.commentSendResult = '';
                 }.bind(this), 3000);

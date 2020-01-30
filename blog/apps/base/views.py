@@ -20,6 +20,7 @@ def show_all_entries_list(request):
     return render(request, 'base/entries-list.html', {
         'page_obj': get_paginated_entries_list(request, 'all'),
         'list_type': 'all',
+        'per_page': request.session.get('per_page', const.ENTRIES_PER_PAGE),
     })
 
 
@@ -81,14 +82,14 @@ def get_paginated_entries_list(request, list_type='all', options=None):
 
     entries_list = get_entries_list(list_type=list_type, options=options)
 
-    per_page = request.GET.get('per_page', const.PER_PAGE)
+    per_page = request.session.get('per_page', request.GET.get('per_page', const.ENTRIES_PER_PAGE))
     page = request.GET.get('page', 1)
     page_obj = paginate(entries_list, page, per_page)
 
     return page_obj
 
 
-def paginate(data_list, page=1, per_page=const.PER_PAGE):
+def paginate(data_list, page=1, per_page=const.ENTRIES_PER_PAGE):
 
     paginator = Paginator(data_list, per_page)
     return paginator.get_page(page)
@@ -206,6 +207,27 @@ def show_entry_page(request, entry_type, entry_id):
         'entry': entry_data
     })
 
+
+
+def write_session_data(request):
+    resp = ApiResponse()
+    data = json.loads(request.POST['data'])
+
+    for item in data:
+        request.session[item['key']] = item['value']
+
+    return JsonResponse(resp.get_resp_data())
+
+
+def get_entry_list_options(request):
+    resp = ApiResponse()
+    options = {
+        'per_page': request.session.get('per_page', const.ENTRIES_PER_PAGE),
+        'sort_type': request.session.get('sort_type', const.ENTRIES_SORT_TYPE),
+    }
+
+    resp.data = options
+    return JsonResponse(resp.get_resp_data())
 
 
 def get_user_data(request):

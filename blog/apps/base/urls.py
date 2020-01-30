@@ -18,8 +18,10 @@ urlpatterns = [
     path('articles/search/', views.show_search_list, name='search'),
 
 
+    path('write-s-data', views.write_session_data, name="write-session-data"),
     path('get-user-data', views.get_user_data, name='get-user-data'),
     path('get-entries-list', views.get_entries_list, name='get-entries-list'),
+    path('get-entry-list-options', views.get_entry_list_options, name='get-entry-list-options'),
     path('add-comment', views.add_comment, name='add-comment'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
