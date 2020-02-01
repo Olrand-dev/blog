@@ -33,19 +33,17 @@ class Tag(models.Model):
         return f'{self.name}'
 
 
+
 class BaseEntry(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     pub_date = models.DateTimeField('publication date', auto_now_add=True)
-
-    class Meta:
-        abstract = True
+    author = models.ForeignKey(Author, on_delete=models.CASCADE)
 
 
 class Entry(BaseEntry):
     header = models.CharField('header', max_length=150)
     text = models.TextField('text')
     image_thumb = models.ImageField('thumbnail image', upload_to='articles/thumbs/', blank=True)
-    author = models.ForeignKey(Author, on_delete=models.CASCADE)
     tags = models.ManyToManyField(Tag)
 
     class Meta:
@@ -57,16 +55,6 @@ class Entry(BaseEntry):
         return f'{self.header} - {f_name} {l_name} - {self.pub_date.strftime("%Y-%m-%d %H:%M:%S")}'
 
 
-class SpecialEntry(BaseEntry):
-    header = models.CharField('header', max_length=150)
-
-    class Meta:
-        verbose_name_plural = 'special entries'
-
-    def __str__(self):
-        return f'{self.header} - {self.pub_date.strftime("%Y-%m-%d %H:%M:%S")}'
-
-
 class Article(Entry):
     entry_type = models.CharField(max_length=50, editable=False, default='standard')
     image = models.ImageField('full image', upload_to='articles/full-images/', blank=True)
@@ -75,6 +63,16 @@ class Article(Entry):
 class VideoArticle(Entry):
     entry_type = models.CharField(max_length=50, editable=False, default='video')
     video_url = models.CharField('video link', max_length=200)
+
+
+class SpecialEntry(BaseEntry):
+    header = models.CharField('header', max_length=150)
+
+    class Meta:
+        verbose_name_plural = 'special entries'
+
+    def __str__(self):
+        return f'{self.header} - {self.pub_date.strftime("%Y-%m-%d %H:%M:%S")}'
 
 
 class QuoteEntry(SpecialEntry):
@@ -91,6 +89,7 @@ class LinkEntry(SpecialEntry):
 
     class Meta:
         verbose_name_plural = 'link entries'
+
 
 
 class Comment(models.Model):

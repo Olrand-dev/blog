@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.templatetags.static import static
 from blog.utils import ApiResponse, string_sanitize
 from blog import const
-from .models import Entry, Author, Article, VideoArticle, Category, Tag, Comment
+from .models import Entry, Author, Article, VideoArticle, QuoteEntry, LinkEntry, Category, Tag, Comment
 
 
 def index(request):
@@ -20,7 +20,6 @@ def show_all_entries_list(request):
     return render(request, 'base/entries-list.html', {
         'page_obj': get_paginated_entries_list(request, 'all'),
         'list_type': 'all',
-        'per_page': request.session.get('per_page', const.ENTRIES_PER_PAGE),
     })
 
 
@@ -80,7 +79,8 @@ def show_month_archive_list(request, year, month):
 
 def get_paginated_entries_list(request, list_type='all', options=None):
 
-    entries_list = get_entries_list(list_type=list_type, options=options)
+    sort_type = request.session.get('sort_type', const.ENTRIES_SORT_TYPE)
+    entries_list = get_entries_list(list_type=list_type, sort_type=sort_type, options=options)
 
     per_page = request.session.get('per_page', request.GET.get('per_page', const.ENTRIES_PER_PAGE))
     page = request.GET.get('page', 1)
@@ -95,13 +95,15 @@ def paginate(data_list, page=1, per_page=const.ENTRIES_PER_PAGE):
     return paginator.get_page(page)
 
 
-def get_entries_list(only_list=False, list_type='all', options=None):
+def get_entries_list(only_list=False, list_type='all', sort_type=const.ENTRIES_SORT_TYPE, options=None):
 
     if list_type == 'all':
         articles = Article.objects.all()
         video_articles = VideoArticle.objects.all()
+        quote_entries = QuoteEntry.objects.all()
+        link_entries = LinkEntry.objects.all()
 
-        entries_data = chain(articles, video_articles)
+        entries_data = chain(articles, video_articles, quote_entries, link_entries)
 
     elif list_type == 'cat':
         cat = Category.objects.get(alias=options['cat_alias'])
@@ -126,8 +128,10 @@ def get_entries_list(only_list=False, list_type='all', options=None):
     else:
         entries_data = []
 
-    #todo -> разные виды сортировки
-    entries_data = sorted(entries_data, key=lambda i: i.pub_date)
+    if sort_type == const.ENTRIES_SORT_TYPE_PUBDATE_DESC:
+        entries_data = sorted(entries_data, key=lambda i: i.pub_date)
+    elif sort_type == const.ENTRIES_SORT_TYPE_PUBDATE_ASC:
+        entries_data = sorted(entries_data, key=lambda i: i.pub_date, reverse=True)
 
     if only_list or len(entries_data) == 0:
         return entries_data
@@ -138,7 +142,7 @@ def get_entries_list(only_list=False, list_type='all', options=None):
     return entries_data
 
 
-def get_entry_details(base_data, full=False):
+def get_entry_details(base_data, sort_type=const.ENTRIES_SORT_TYPE, full=False):
 
     entry_data = base_data
     entry = Entry.objects.get(pk=entry_data.id)
@@ -147,13 +151,14 @@ def get_entry_details(base_data, full=False):
     entry_data.category_name = entry.category.name
     entry_data.category_alias = entry.category.alias
     entry_data.author_name = f'{author.user.first_name} {author.user.last_name}'
-    entry_data.excerpt = entry_data.text[:150]
     entry_data.entry_type = get_entry_type(entry_data.id)
+    if entry_data.entry_type == 'standard' or entry_data.entry_type == 'video':
+        entry_data.excerpt = entry_data.text[:150]
 
     if full:
         entry_data.tags_list = entry_data.tags.all()
 
-        all_entries = get_entries_list(only_list=True, list_type='all')
+        all_entries = get_entries_list(only_list=True, list_type='all', sort_type=sort_type)
         e_index = [x.id for x in all_entries].index(entry_data.id)
         if e_index > 0:
             entry_data.prev_entry = all_entries[e_index - 1]
@@ -162,7 +167,7 @@ def get_entry_details(base_data, full=False):
 
         cat = Category.objects.get(pk=entry_data.category_id)
         cat_entries = get_entries_list(
-            list_type='cat', options={'cat_alias': cat.alias}
+            list_type='cat', sort_type=sort_type, options={'cat_alias': cat.alias}
         )
         entry_data.related_entries = cat_entries[:3]
 
@@ -179,12 +184,15 @@ def get_entry_details(base_data, full=False):
 
 
 def get_entry_type(entry_id):
-    entry_type = 'standard'
 
+    if len(Article.objects.filter(pk=entry_id)) > 0:
+        return 'standard'
     if len(VideoArticle.objects.filter(pk=entry_id)) > 0:
-        entry_type = 'video'
-
-    return entry_type
+        return 'video'
+    if len(QuoteEntry.objects.filter(pk=entry_id)) > 0:
+        return 'quote'
+    if len(LinkEntry.objects.filter(pk=entry_id)) > 0:
+        return 'link'
 
 
 def get_entry_data_by_type(entry_type, entry_id):
@@ -200,8 +208,9 @@ def get_entry_data_by_type(entry_type, entry_id):
 
 def show_entry_page(request, entry_type, entry_id):
 
+    sort_type = request.session.get('sort_type', const.ENTRIES_SORT_TYPE)
     entry_data = get_entry_data_by_type(entry_type, entry_id)
-    entry_data = get_entry_details(entry_data, True)
+    entry_data = get_entry_details(entry_data, sort_type, True)
 
     return render(request, 'base/entry-page.html', {
         'entry': entry_data
@@ -220,12 +229,12 @@ def write_session_data(request):
 
 
 def get_entry_list_options(request):
-    resp = ApiResponse()
     options = {
         'per_page': request.session.get('per_page', const.ENTRIES_PER_PAGE),
         'sort_type': request.session.get('sort_type', const.ENTRIES_SORT_TYPE),
     }
 
+    resp = ApiResponse()
     resp.data = options
     return JsonResponse(resp.get_resp_data())
 
