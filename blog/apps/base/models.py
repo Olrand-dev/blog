@@ -15,7 +15,7 @@ class Author(models.Model):
 
 class Category(models.Model):
     name = models.CharField('category name', max_length=100)
-    alias = models.CharField('alias', max_length=100, null=True)
+    alias = models.CharField('alias', max_length=100)
     desc = models.TextField('description', blank=True)
 
     class Meta:
@@ -27,24 +27,20 @@ class Category(models.Model):
 
 class Tag(models.Model):
     name = models.CharField('tag name', max_length=50)
-    alias = models.CharField('alias', max_length=100, null=True)
+    alias = models.CharField('alias', max_length=100)
 
     def __str__(self):
         return f'{self.name}'
+    
 
 
-
-class BaseEntry(models.Model):
+class Entry(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    tags = models.ManyToManyField(Tag, blank=True)
     pub_date = models.DateTimeField('publication date', auto_now_add=True)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-
-
-class Entry(BaseEntry):
     header = models.CharField('header', max_length=150)
-    text = models.TextField('text')
-    image_thumb = models.ImageField('thumbnail image', upload_to='articles/thumbs/', blank=True)
-    tags = models.ManyToManyField(Tag)
+    text = models.TextField('text', blank=True)
 
     class Meta:
         verbose_name_plural = 'entries'
@@ -57,34 +53,26 @@ class Entry(BaseEntry):
 
 class Article(Entry):
     entry_type = models.CharField(max_length=50, editable=False, default='standard')
+    image_thumb = models.ImageField('thumbnail image', upload_to='articles/thumbs/standard', blank=True)
     image = models.ImageField('full image', upload_to='articles/full-images/', blank=True)
 
 
 class VideoArticle(Entry):
     entry_type = models.CharField(max_length=50, editable=False, default='video')
+    image_thumb = models.ImageField('thumbnail image', upload_to='articles/thumbs/video', blank=True)
     video_url = models.CharField('video link', max_length=200)
 
 
-class SpecialEntry(BaseEntry):
-    header = models.CharField('header', max_length=150)
-
-    class Meta:
-        verbose_name_plural = 'special entries'
-
-    def __str__(self):
-        return f'{self.header} - {self.pub_date.strftime("%Y-%m-%d %H:%M:%S")}'
-
-
-class QuoteEntry(SpecialEntry):
-    text = models.TextField('text')
+class QuoteEntry(Entry):
+    entry_type = models.CharField(max_length=50, editable=False, default='quote')
     cite = models.CharField('cite', max_length=50)
 
     class Meta:
         verbose_name_plural = 'quote entries'
 
 
-class LinkEntry(SpecialEntry):
-    desc = models.CharField('link description', max_length=150, blank=True)
+class LinkEntry(Entry):
+    entry_type = models.CharField(max_length=50, editable=False, default='link')
     url = models.CharField('link', max_length=200)
 
     class Meta:

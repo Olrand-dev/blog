@@ -10,11 +10,13 @@
         
         <article class="column large-full entry format-standard">
 
+            {% if entry.image %}
             <div class="media-wrap entry__media">
                 <div class="entry__post-thumb">
                     <img src="{{ entry.image.url }}" alt="article_image">
                 </div>
             </div>
+            {% endif %}
 
             <div class="content__page-header entry__header">
 
@@ -38,6 +40,7 @@
 
                 {{ entry.text }}
 
+                {% if entry.tags_list %}
                 <p class="entry__tags">
                     <span>Post Tags</span>
 
@@ -48,9 +51,11 @@
                     </span>
     
                 </p>
+                {% endif %}
             </div>
 
 
+            {% if entry.prev_entry or entry.next_entry %}
             <div class="entry__pagenav">
                 <div class="entry__nav">
 
@@ -74,8 +79,10 @@
 
                 </div>
             </div>
+            {% endif %}
 
 
+            {% if entry.related_entries %}
             <div class="entry__related">
                 <h3 class="h2">Related Articles</h3>
 
@@ -90,6 +97,7 @@
                     {% endfor %}
                 </ul>
             </div>
+            {% endif %}
 
         </article>
 

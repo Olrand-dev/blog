@@ -1,6 +1,5 @@
 import json
 import datetime
-from itertools import chain
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import render
@@ -98,12 +97,7 @@ def paginate(data_list, page=1, per_page=const.ENTRIES_PER_PAGE):
 def get_entries_list(only_list=False, list_type='all', sort_type=const.ENTRIES_SORT_TYPE, options=None):
 
     if list_type == 'all':
-        articles = Article.objects.all()
-        video_articles = VideoArticle.objects.all()
-        quote_entries = QuoteEntry.objects.all()
-        link_entries = LinkEntry.objects.all()
-
-        entries_data = chain(articles, video_articles, quote_entries, link_entries)
+        entries_data = Entry.objects.all()
 
     elif list_type == 'cat':
         cat = Category.objects.get(alias=options['cat_alias'])
@@ -118,15 +112,14 @@ def get_entries_list(only_list=False, list_type='all', sort_type=const.ENTRIES_S
         entries_data = Entry.objects.filter(Q(header__search=query) | Q(text__search=query))
 
     elif list_type == 'year_archive':
-        tag = Tag.objects.get(alias=options['tag_alias'])
-        entries_data = tag.entry_set.all()
+        entries_data = Entry.objects.filter(pub_date__year=options['year'])
 
     elif list_type == 'month_archive':
-        tag = Tag.objects.get(alias=options['tag_alias'])
-        entries_data = tag.entry_set.all()
+        entries_data = Entry.objects.filter(pub_date__year=options['year'], pub_date__month=options['month'])
 
     else:
         entries_data = []
+
 
     if sort_type == const.ENTRIES_SORT_TYPE_PUBDATE_DESC:
         entries_data = sorted(entries_data, key=lambda i: i.pub_date)
@@ -152,13 +145,13 @@ def get_entry_details(base_data, sort_type=const.ENTRIES_SORT_TYPE, full=False):
     entry_data.category_alias = entry.category.alias
     entry_data.author_name = f'{author.user.first_name} {author.user.last_name}'
     entry_data.entry_type = get_entry_type(entry_data.id)
-    if entry_data.entry_type == 'standard' or entry_data.entry_type == 'video':
-        entry_data.excerpt = entry_data.text[:150]
+    entry_data.excerpt = entry.text[:150]
 
     if full:
         entry_data.tags_list = entry_data.tags.all()
 
         all_entries = get_entries_list(only_list=True, list_type='all', sort_type=sort_type)
+
         e_index = [x.id for x in all_entries].index(entry_data.id)
         if e_index > 0:
             entry_data.prev_entry = all_entries[e_index - 1]
@@ -202,6 +195,10 @@ def get_entry_data_by_type(entry_type, entry_id):
         entry_data = Article.objects.get(pk=entry_id)
     elif entry_type == 'video':
         entry_data = VideoArticle.objects.get(pk=entry_id)
+    elif entry_type == 'quote':
+        entry_data = QuoteEntry.objects.get(pk=entry_id)
+    elif entry_type == 'link':
+        entry_data = LinkEntry.objects.get(pk=entry_id)
 
     return entry_data
 

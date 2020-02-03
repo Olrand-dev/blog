@@ -82,6 +82,10 @@ select {
 .entry__title {
     font-size: 42px !important;
 }
+.entry__title.list {
+    font-size: 31px !important;
+    margin-top: 0 !important;
+}
 
 .entry__nav a {
     font-size: 30px !important;
