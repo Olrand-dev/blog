@@ -28,7 +28,7 @@ $(document).ready(function () {
     
 
     //smooth scroll to anchor
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    document.querySelectorAll('.content-wrap a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
     
@@ -45,8 +45,6 @@ $(document).ready(function () {
         dataType: 'json',
         data: {},
         success: function (response) {
-
-            
 
         }.bind(this)
     }); */

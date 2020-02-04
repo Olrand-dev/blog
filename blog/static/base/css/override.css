@@ -19,6 +19,10 @@
 .header__nav {
     margin-bottom: 70px !important;
 }
+.header__nav .sub-menu.cats-list a,
+.header__nav .sub-menu.cats-list span {
+    display: inline;
+}
 
 .header__author-photo {
     margin-top: 12px;
