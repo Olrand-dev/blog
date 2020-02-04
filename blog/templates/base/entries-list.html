@@ -76,28 +76,29 @@
                 </article>
                 {% endif %}
 
-                {% if entry.entry_type == '' %}
-                <article v-if="entry.entry_type === 'quote'" class="masonry__brick entry format-quote animate-this">
+                {% if entry.entry_type == 'quote' %}
+                <article class="masonry__brick entry format-quote animate-this">
                         
                     <div class="entry__thumb">
                         <blockquote>
-                            <p>Good design is making something intelligible and memorable. Great design is making something memorable and meaningful.</p>
+                            <p>{{ entry.text }}</p>
 
-                            <cite>Dieter Rams</cite>
+                            <cite>{{ entry.cite }}</cite>
                         </blockquote>
                     </div>   
 
                 </article>
                 {% endif %}
 
-                {% if entry.entry_type == '' %}
-                <article v-if="entry.entry_type === 'link'" class="masonry__brick entry format-link animate-this">
+                {% if entry.entry_type == 'link' %}
+                <article class="masonry__brick entry format-link animate-this">
                     
                     <div class="entry__thumb">
                         <div class="link-wrap">
-                            <h2>Powerful web & Wordpress hosting. Guaranteed. Starting at $2.59/mo!</h2>
+                            <h2>{{ entry.header }}</h2>
+                            <p>{{ entry.text }}</p>
                             <cite>
-                                <a target="_blank" href="https://www.dreamhost.com/r.cgi?287326">https://www.dreamhost.com</a>
+                                <a target="_blank" href="{{ entry.url }}">{{ entry.url }}</a>
                             </cite>
                         </div>
                     </div>

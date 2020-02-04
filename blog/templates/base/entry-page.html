@@ -8,12 +8,20 @@
 <div class="s-content content">
     <main class="row content__page">
         
-        <article class="column large-full entry format-standard">
+        <article class="column large-full entry format-{{ entry.entry_type }}">
 
             {% if entry.image %}
             <div class="media-wrap entry__media">
                 <div class="entry__post-thumb">
                     <img src="{{ entry.image.url }}" alt="article_image">
+                </div>
+            </div>
+            {% endif %}
+
+            {% if entry.entry_type == 'video' %}
+            <div class="media-wrap entry__media">
+                <div class="video-container">
+                    <iframe src="{{ entry.video_url }}" width="640" height="360" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
             </div>
             {% endif %}
@@ -106,7 +114,11 @@
 
             <div id="comments" class="column large-12">
 
+                {% if entry.comments_list %}
                 <h3 class="h2">{{ entry.comments_list|length }} Comment{% if entry.comments_list.count > 1 %}s{% endif %}</h3>
+                {% else %}
+                <h3 class="h2">No comments yet.</h3> Be first.
+                {% endif %}
 
                 <ol class="commentlist">
 

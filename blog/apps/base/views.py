@@ -115,42 +115,50 @@ def get_entries_list(only_list=False, list_type='all', sort_type=const.ENTRIES_S
         entries_data = Entry.objects.filter(pub_date__year=options['year'])
 
     elif list_type == 'month_archive':
-        entries_data = Entry.objects.filter(pub_date__year=options['year'], pub_date__month=options['month'])
+        all_entries = Entry.objects.all()
+        entries_data = filter(
+            lambda e: e.pub_date.year == options['year'] and e.pub_date.month == options['month'], 
+            all_entries
+        )
 
     else:
         entries_data = []
 
 
-    if sort_type == const.ENTRIES_SORT_TYPE_PUBDATE_DESC:
+    if sort_type == const.ENTRIES_SORT_TYPE_PUBDATE_ASC:
         entries_data = sorted(entries_data, key=lambda i: i.pub_date)
-    elif sort_type == const.ENTRIES_SORT_TYPE_PUBDATE_ASC:
+    elif sort_type == const.ENTRIES_SORT_TYPE_PUBDATE_DESC:
         entries_data = sorted(entries_data, key=lambda i: i.pub_date, reverse=True)
 
     if only_list or len(entries_data) == 0:
         return entries_data
 
+    full_entries_data = []
     for entry_data in entries_data:
-        entry_data = get_entry_details(entry_data)
+        full_entries_data.append(get_entry_details(entry_data))
 
-    return entries_data
+    return full_entries_data
 
 
 def get_entry_details(base_data, sort_type=const.ENTRIES_SORT_TYPE, full=False):
 
     entry_data = base_data
+    entry_data.entry_type = get_entry_type(entry_data.id)
+    entry_data = get_entry_data_by_type(entry_data.entry_type, entry_data.id)
+    
     entry = Entry.objects.get(pk=entry_data.id)
     author = Author.objects.get(pk=entry_data.author_id)
 
     entry_data.category_name = entry.category.name
     entry_data.category_alias = entry.category.alias
     entry_data.author_name = f'{author.user.first_name} {author.user.last_name}'
-    entry_data.entry_type = get_entry_type(entry_data.id)
     entry_data.excerpt = entry.text[:150]
 
     if full:
         entry_data.tags_list = entry_data.tags.all()
 
-        all_entries = get_entries_list(only_list=True, list_type='all', sort_type=sort_type)
+        all_entries = get_entries_list(list_type='all', sort_type=sort_type)
+        all_entries = list(filter(lambda entry: entry.entry_type in ('standard', 'video'), all_entries))
 
         e_index = [x.id for x in all_entries].index(entry_data.id)
         if e_index > 0:
@@ -162,7 +170,7 @@ def get_entry_details(base_data, sort_type=const.ENTRIES_SORT_TYPE, full=False):
         cat_entries = get_entries_list(
             list_type='cat', sort_type=sort_type, options={'cat_alias': cat.alias}
         )
-        entry_data.related_entries = cat_entries[:3]
+        entry_data.related_entries = get_entry_related_entries(cat_entries, entry_data.id, 3)
 
         entry_data.comments_list = entry.comment_set.all()
         for comment in entry_data.comments_list:
@@ -201,6 +209,15 @@ def get_entry_data_by_type(entry_type, entry_id):
         entry_data = LinkEntry.objects.get(pk=entry_id)
 
     return entry_data
+
+
+def get_entry_related_entries(entries_list, main_id, num):
+
+    def filter_list(entry):
+        return entry.id != main_id and (entry.entry_type in ('standard', 'video'))
+
+    entries_list = filter(filter_list, entries_list)
+    return list(entries_list)[:num]
 
 
 def show_entry_page(request, entry_type, entry_id):

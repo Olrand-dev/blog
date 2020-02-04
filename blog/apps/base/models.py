@@ -54,7 +54,7 @@ class Entry(models.Model):
 class Article(Entry):
     entry_type = models.CharField(max_length=50, editable=False, default='standard')
     image_thumb = models.ImageField('thumbnail image', upload_to='articles/thumbs/standard', blank=True)
-    image = models.ImageField('full image', upload_to='articles/full-images/', blank=True)
+    image = models.ImageField('full image', upload_to='articles/full-images/standard', blank=True)
 
 
 class VideoArticle(Entry):
