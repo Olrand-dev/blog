@@ -16,6 +16,7 @@ urlpatterns = [
     path('articles/archive/<int:year>/', views.show_year_archive_list, name='year-archive'),
     path('articles/archive/<int:year>/<int:month>/', views.show_month_archive_list, name='month-archive'),
     path('articles/search/', views.show_search_list, name='search'),
+    path('pages/<slug:page_alias>/', views.show_flat_page, name='flat-page'),
 
 
     path('write-s-data', views.write_session_data, name="write-session-data"),
@@ -23,5 +24,6 @@ urlpatterns = [
     path('get-entries-list', views.get_entries_list, name='get-entries-list'),
     path('get-entry-list-options', views.get_entry_list_options, name='get-entry-list-options'),
     path('add-comment', views.add_comment, name='add-comment'),
+    path('send-message', views.send_message, name='send-message'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

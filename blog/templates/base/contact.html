@@ -1,0 +1,298 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Blog | Contact Page{% endblock %}
+
+{% block content %}
+
+<div class="s-content content">
+    <main class="row content__page">
+
+        <section class="column large-full entry format-standard">
+
+            <div class="media-wrap">
+                <div>
+                    <img src="{% static 'base/img/thumbs/contact/contact-1000.jpg' %}" srcset="{% static 'base/img/thumbs/contact/contact-2000.jpg' %} 2000w, 
+                        {% static 'base/img/thumbs/contact/contact-1000.jpg' %} 1000w, 
+                        {% static 'base/img/thumbs/contact/contact-500.jpg' %} 500w" sizes="(max-width: 2000px) 100vw, 2000px" alt="">
+                </div>
+            </div>
+
+            <div class="content__page-header">
+                <h1 class="display-1">
+                    Get In Touch.
+                </h1>
+            </div>
+
+            <p class="lead drop-cap">
+                Duis ex ad cupidatat tempor Excepteur cillum cupidatat
+                fugiat nostrud cupidatat dolor sunt sint sit nisi est eu exercitation
+                incididunt adipisicing veniam velit id fugiat enim mollit amet anim veniam dolor
+                dolor irure velit commodo cillum sit nulla ullamco magna amet magna cupidatat qui
+                labore cillum sit in tempor veniam consequat non laborum adipisicing aliqua
+                ea nisi sint.
+            </p>
+
+            <p>
+                Duis ex ad cupidatat tempor Excepteur cillum cupidatat fugiat nostrud cupidatat
+                dolor sunt sint sit nisi est eu exercitation incididunt adipisicing veniam velit
+                id fugiat enim mollit amet anim veniam dolor dolor irure velit commodo cillum sit
+                nulla ullamco magna amet magna cupidatat qui labore cillum sit in tempor veniam
+                consequat non laborum adipisicing aliqua ea nisi sint ut quis proident ullamco ut
+                dolore culpa occaecat ut laboris in sit minim cupidatat ut dolor voluptate enim
+                veniam consequat occaecat fugiat in adipisicing in amet Ut nulla nisi non ut enim
+                aliqua laborum mollit quis nostrud sed sed.
+            </p>
+
+            <div class="row">
+                <div class="column large-six tab-full">
+                    <h4>Where to Find Me</h4>
+
+                    <p>
+                        1600 Amphitheatre Parkway<br>
+                        Mountain View, CA<br>
+                        94043 US
+                    </p>
+
+                </div>
+
+                <div class="column large-six tab-full">
+                    <h4>Contact Info</h4>
+
+                    <p>sayhello@typerite.com<br>
+                        info@typerite.com <br>
+                        Phone: +197 543 2345
+                    </p>
+
+                </div>
+            </div>
+
+            <h3 class="h2">Say Hello</h3>
+
+            <form name="contactForm" id="contact-form" method="post" action="" autocomplete="off">
+                <fieldset>
+
+                    {% csrf_token %}
+
+                    <div class="form-field">
+                        <input v-model="formData.name" class="full-width" :class="{ 'error': errors.name }" placeholder="Your Name *" type="text">
+                    </div>
+
+                    <div class="form-field">
+                        <input v-model="formData.email" class="full-width" :class="{ 'error': errors.email }" placeholder="Your Email" type="text">
+                    </div>
+
+                    <div class="message form-field">
+                        <textarea v-model="formData.message" class="full-width" :class="{ 'error': errors.message }" placeholder="Your Message *"></textarea>
+                    </div>
+
+                    <transition name="fade">
+                        <div v-if="sendingResult === 'success'" class="alert-box alert-box--success">
+                            <p>Your message successfully sended. Thank you!</p>
+                        </div>
+                        <div v-if="sendingResult === 'error'" class="alert-box alert-box--error">
+                            <p>Message sending error.</p>
+                        </div>
+                        <div v-if="formValidateResult === 'error'" class="alert-box alert-box--error">
+                            <p>Form validation errors:</p>
+                            <ul>
+                                <li v-for="errorMsg in errorMessages">
+                                    [[ errorMsg ]]
+                                </li>
+                            </ul>
+                        </div>
+                    </transition>
+
+                    <input @click.prevent="send" class="btn btn--primary btn-wide btn--large full-width" value="Send Message" type="submit">
+
+                </fieldset>
+            </form>
+
+        </section>
+
+    </main>
+</div>
+
+<script>
+
+    const initFormData = {
+        name: '',
+        email: '',
+        message: '',
+    };
+
+    const ContactForm = new Vue({
+    
+        el: '#contact-form',
+    
+        delimiters: ['[[', ']]'],
+    
+        data() {
+            return {
+
+                sendingResult: '',
+                formValidateResult: '',
+                formData: clone(initFormData),
+
+                validationRules: {
+                    name: {
+                        fieldName: 'Name',
+                        type: 'text',
+                        required: true,
+                        max: 150,
+                    },
+                    email: {
+                        fieldName: 'Email',
+                        type: 'text',
+                        required: false,
+                        validation: 'email',
+                        max: 100,
+                    },
+                    message: {
+                        fieldName: 'Message',
+                        type: 'text',
+                        required: true,
+                        max: 1000,
+                    },
+                },
+
+                errors: {
+                    name: false,
+                    email: false,
+                    message: false,
+                },
+
+                errorMessages: [],
+            }
+        },
+
+        mixins: [CsrfToken],
+    
+        methods: {
+            
+            send() {
+                if (!this.validateForm()) return;
+
+                $.ajax({
+                    url: '/send-message',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        form_data: JSON.stringify(this.formData),
+                        csrfmiddlewaretoken: this.csrfToken,
+                    },
+                    success: function(response) {
+
+                        if (response.status === RESP_STATUS_ERROR) {
+                            this.sendingError();
+                            return;
+                        }
+
+                        this.sendingResult = 'success';
+                        refreshPage(1500, false);
+                        
+                    }.bind(this),
+                    error: function() {
+
+                        this.sendingError();
+                    }.bind(this)
+                });
+            },
+
+            sendingError() {
+                this.sendingResult = 'error';
+
+                setTimeout(function() {
+                    this.sendingResult = '';
+                }.bind(this), 3000);
+            },
+
+            validateForm() {
+                let valid = true;
+
+                for (let error in this.errors) {
+                    this.errors[error] = false;
+                }
+                this.errorMessages = [];
+
+                for (let field in this.formData) {
+
+                    let rules = this.validationRules[field] || null;
+                    let value = this.formData[field];
+
+                    if (!rules) continue;
+
+                    if (rules.required) {
+                        let error = '';
+
+                        switch (rules.type) {
+                            case 'text': {
+                                if (value === '') {
+                                    error = `Field '${rules.fieldName}' is required.`
+                                }
+                                break;
+                            }
+                        }
+
+                        if (error.length > 0) {
+                            this.errors[field] = true;
+                            this.errorMessages.push(error);
+                            valid = false;
+                        }  
+                    }
+
+                    if (rules.validation && value.length > 0) {
+                        let error = '';
+
+                        switch (rules.validation) {
+
+                            case 'email': {
+                                let regex = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+                                if (!regex.test(String(value).toLowerCase())) {
+                                    error = `Field '${rules.fieldName}' must be a valid email address.`;
+                                }
+                                break;
+                            }
+                        }
+
+                        if (error.length > 0) {
+                            this.errors[field] = true;
+                            this.errorMessages.push(error);
+                            valid = false;
+                        }
+                    }
+
+                    //if field length smaller than min rule length
+                    if (valid && rules.min && value.length < rules.min) {
+                        this.errorMessages.push(
+                            `Field '${rules.fieldName}' is smaller than min field constraint (${rules.min} symbols).`
+                        );
+                        this.errors[field] = true;
+                        valid = false;
+                    }
+
+                    //if field length bigger than max rule length
+                    if (valid && rules.max && value.length > rules.max) {
+                        this.errorMessages.push(
+                            `Field '${rules.fieldName}' is bigger than max field constraint (${value.length}/${rules.max} symbols).`
+                        );
+                        this.errors[field] = true;
+                        valid = false;
+                    }
+                }
+
+                if (!valid) {
+                    this.formValidateResult = 'error';
+                    setTimeout(function() {
+                        this.formValidateResult = '';
+                    }.bind(this), 6000);
+                }
+                return valid;
+            }
+        },
+    
+    });
+    
+</script>
+
+{% endblock %}

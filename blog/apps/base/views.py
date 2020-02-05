@@ -11,6 +11,8 @@ from .models import Entry, Author, Article, VideoArticle, QuoteEntry, LinkEntry,
 
 
 def index(request):
+
+    request.session['current_page'] = 'home'
     return show_all_entries_list(request)
 
 
@@ -24,6 +26,7 @@ def show_all_entries_list(request):
 
 def show_cat_list(request, cat_alias):
     cat = Category.objects.get(alias=cat_alias)
+    request.session['current_page'] = 'categories'
 
     return render(request, 'base/entries-list.html', {
         'page_obj': get_paginated_entries_list(request, 'cat', {'cat_alias': cat_alias}),
@@ -34,6 +37,7 @@ def show_cat_list(request, cat_alias):
 
 def show_tag_list(request, tag_alias):
     tag = Tag.objects.get(alias=tag_alias)
+    request.session['current_page'] = 'tags'
 
     return render(request, 'base/entries-list.html', {
         'page_obj': get_paginated_entries_list(request, 'tag', {'tag_alias': tag_alias}),
@@ -74,6 +78,24 @@ def show_month_archive_list(request, year, month):
         'year': year,
         'month': date.strftime("%B"),
     })
+
+
+def show_entry_page(request, entry_type, entry_id):
+
+    sort_type = request.session.get('sort_type', const.ENTRIES_SORT_TYPE)
+    entry_data = get_entry_data_by_type(entry_type, entry_id)
+    entry_data = get_entry_details(entry_data, sort_type, True)
+
+    return render(request, 'base/entry-page.html', {
+        'entry': entry_data
+    })
+
+
+def show_flat_page(request, page_alias):
+
+    request.session['current_page'] = page_alias
+    return render(request, f'base/{page_alias}.html', {})
+    
 
 
 def get_paginated_entries_list(request, list_type='all', options=None):
@@ -220,18 +242,6 @@ def get_entry_related_entries(entries_list, main_id, num):
     return list(entries_list)[:num]
 
 
-def show_entry_page(request, entry_type, entry_id):
-
-    sort_type = request.session.get('sort_type', const.ENTRIES_SORT_TYPE)
-    entry_data = get_entry_data_by_type(entry_type, entry_id)
-    entry_data = get_entry_details(entry_data, sort_type, True)
-
-    return render(request, 'base/entry-page.html', {
-        'entry': entry_data
-    })
-
-
-
 def write_session_data(request):
     resp = ApiResponse()
     data = json.loads(request.POST['data'])
@@ -309,4 +319,10 @@ def add_comment(request):
         comment.parent = Comment.objects.get(pk=reply_parent_id)
 
     comment.save()
+    return JsonResponse(resp.get_resp_data())
+
+
+def send_message(request):
+
+    resp = ApiResponse()
     return JsonResponse(resp.get_resp_data())

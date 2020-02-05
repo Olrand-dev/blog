@@ -209,7 +209,7 @@
                             <input type="hidden" name="entry-id" value="{{ entry.id }}">
     
                             <div class="form-field">
-                                <input v-model="formData.name" class="full-width" :class="{ 'error': errors.name }" placeholder="Your Name" type="text">
+                                <input v-model="formData.name" class="full-width" :class="{ 'error': errors.name }" placeholder="Your Name *" type="text">
                             </div>
     
                             <div class="form-field">
@@ -217,17 +217,17 @@
                             </div>
     
                             <div class="message form-field">
-                                <textarea v-model="formData.message" class="full-width" :class="{ 'error': errors.message }" placeholder="Your Message"></textarea>
+                                <textarea v-model="formData.message" class="full-width" :class="{ 'error': errors.message }" placeholder="Your Message *"></textarea>
                             </div>
 
                             <transition name="fade">
-                                <div v-if="commentSendResult === 'success'" class="alert-box alert-box--success">
+                                <div v-if="sendingResult === 'success'" class="alert-box alert-box--success">
                                     <p>Your comment successfully sended.</p>
                                 </div>
-                                <div v-if="commentSendResult === 'error'" class="alert-box alert-box--error">
+                                <div v-if="sendingResult === 'error'" class="alert-box alert-box--error">
                                     <p>Comment sending error.</p>
                                 </div>
-                                <div v-if="commentValidateResult === 'error'" class="alert-box alert-box--error">
+                                <div v-if="formValidateResult === 'error'" class="alert-box alert-box--error">
                                     <p>Form validation errors:</p>
                                     <ul>
                                         <li v-for="errorMsg in errorMessages">
@@ -269,8 +269,8 @@
             return {
 
                 mode: 'comment',
-                commentSendResult: '',
-                commentValidateResult: '',
+                sendingResult: '',
+                formValidateResult: '',
                 formData: clone(initFormData),
 
                 replyTargetId: 0,
@@ -344,26 +344,26 @@
                     success: function(response) {
 
                         if (response.status === RESP_STATUS_ERROR) {
-                            this.commentSendError();
+                            this.sendingError();
                             return;
                         }
 
-                        this.commentSendResult = 'success';
+                        this.sendingResult = 'success';
                         refreshPage(1500, false);
                         
                     }.bind(this),
                     error: function() {
 
-                        this.commentSendError();
+                        this.sendingError();
                     }.bind(this)
                 });
             },
 
-            commentSendError() {
-                this.commentSendResult = 'error';
+            sendingError() {
+                this.sendingResult = 'error';
 
                 setTimeout(function() {
-                    this.commentSendResult = '';
+                    this.sendingResult = '';
                 }.bind(this), 3000);
             },
 
@@ -442,9 +442,9 @@
                 }
 
                 if (!valid) {
-                    this.commentValidateResult = 'error';
+                    this.formValidateResult = 'error';
                     setTimeout(function() {
-                        this.commentValidateResult = '';
+                        this.formValidateResult = '';
                     }.bind(this), 6000);
                 }
                 return valid;
